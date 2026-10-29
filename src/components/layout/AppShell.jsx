@@ -18,7 +18,7 @@ function Logo() {
       <div className="grid h-6 w-6 place-items-center rounded-[5px] bg-foreground">
         <div className="h-2.5 w-2.5 rounded-[2px] border-[1.5px] border-background" />
       </div>
-      <span className="text-[14px] font-semibold tracking-tight">Blueprint OS</span>
+      <span className="text-[14px] font-semibold tracking-tight">Formora</span>
     </Link>
   );
 }
@@ -29,7 +29,7 @@ function Crumbs() {
   const ctx = useProject();
   const seg = loc.pathname.split("/")[3] || "";
   const page = PROJECT_NAV.flatMap((g) => g.items).find((i) => i.to === seg);
-  const top = loc.pathname.startsWith("/projects/new") ? "New Project" : loc.pathname.startsWith("/projects") ? "Projects" : "Dashboard";
+  const top = loc.pathname.startsWith("/projects/new") ? "New Project" : loc.pathname.startsWith("/projects") ? "Projects" : loc.pathname.startsWith("/billing") ? "Billing & Plans" : "Dashboard";
   return (
     <div className="flex min-w-0 items-center gap-1.5 text-[13px]" data-testid="breadcrumbs">
       {pid ? (
@@ -143,7 +143,7 @@ export default function AppShell() {
                 <span>Billing & Plans</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={async () => { await logout(); nav("/login"); }} data-testid="logout-btn"><LogOut className="h-4 w-4 mr-2" />Sign out</DropdownMenuItem>
+              <DropdownMenuItem onClick={async () => { await logout(); nav("/"); }} data-testid="logout-btn"><LogOut className="h-4 w-4 mr-2" />Sign out</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>

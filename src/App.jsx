@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { ProjectProvider } from "@/context/ProjectContext";
 import AppShell from "@/components/layout/AppShell";
 import { PageLoading } from "@/components/common";
+import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
 import AuthCallback from "@/pages/AuthCallback";
 import Dashboard from "@/pages/Dashboard";
@@ -33,12 +34,20 @@ function Protected({ children }) {
   return children;
 }
 
+function FallbackRoute() {
+  const { user } = useAuth();
+  if (user === null) return <PageLoading />;
+  return <Navigate to={user ? "/dashboard" : "/"} replace />;
+}
+
 function AppRouter() {
   const location = useLocation();
   if (location.hash?.includes("session_id=")) return <AuthCallback />;
   return (
     <Routes>
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Navigate to="/login?mode=register" replace />} />
       <Route element={<Protected><AppShell /></Protected>}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/projects" element={<Projects />} />
@@ -60,7 +69,7 @@ function AppRouter() {
         <Route path="settings" element={<ProjectSettings />} />
         <Route path=":later" element={<LaterPhase />} />
       </Route>
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<FallbackRoute />} />
     </Routes>
   );
 }

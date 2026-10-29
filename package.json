@@ -5,6 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "start": "node server/server.js",
     "dev": "concurrently -k -p \"[{name}]\" -n \"API,WEB\" -c \"cyan,magenta\" \"npm run server\" \"npm run client\"",
     "server": "node --watch server/server.js",
     "client": "vite",

@@ -81,3 +81,4 @@ export default function UpgradeDialog({ open, onOpenChange, reason, currentPlan 
     </AlertDialog>
   );
 }
+

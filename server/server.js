@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import fs from "fs";
@@ -21,66 +22,128 @@ import {
   createCheckoutSession,
   handleLemonSqueezyWebhookEvent,
 } from "./billing.js";
+import {
+  initializeSqliteDatabase,
+  persistStateToSqlite,
+  storeRefreshToken,
+  consumeRefreshToken,
+  revokeRefreshToken,
+  getDatabaseHealth,
+} from "./database.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DB_FILE = path.join(__dirname, "db.json");
-const JWT_SECRET = process.env.JWT_SECRET || "formora-super-secret-key-2026";
+
+const IS_PROD = process.env.NODE_ENV === "production";
+if (IS_PROD && (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32)) {
+  console.error("FATAL: Production requires a strong JWT_SECRET environment variable (>= 32 chars).");
+  process.exit(1);
+}
+const JWT_SECRET = process.env.JWT_SECRET || "formora-dev-only-secret-key-2026-local";
+
+const ACCESS_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
+const REFRESH_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 const app = express();
+app.disable("x-powered-by");
+
+// --- Security Headers ---
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  if (IS_PROD) {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
+  next();
+});
+
 app.use(
   express.json({
-    limit: "10mb",
+    limit: "5mb",
     verify: (req, res, buf) => {
       req.rawBody = buf;
     },
   })
 );
 app.use(cookieParser());
-app.use(cors({ origin: true, credentials: true }));
 
-// --- Persistent Database Initialization ---
-function loadDb() {
-  if (fs.existsSync(DB_FILE)) {
-    try {
-      const parsed = JSON.parse(fs.readFileSync(DB_FILE, "utf-8"));
-      parsed.chats = parsed.chats || {};
-      parsed.module_docs = parsed.module_docs || {};
-      parsed.artifact_versions = parsed.artifact_versions || {};
-      parsed.decisions = parsed.decisions || {};
-      parsed.ai_jobs = parsed.ai_jobs || {};
-      parsed.processed_webhooks = parsed.processed_webhooks || [];
-      parsed.subscriptions = parsed.subscriptions || {};
-      parsed.transactions = parsed.transactions || [];
-      for (const u of parsed.users || []) {
-        if (!u.plan) u.plan = "free";
-      }
-      return parsed;
-    } catch (e) {
-      console.error("Failed to parse db.json, creating fresh store", e);
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim()).filter(Boolean)
+  : null;
+app.use(
+  cors({
+    origin: IS_PROD && allowedOrigins?.length ? allowedOrigins : true,
+    credentials: true,
+  })
+);
+
+// --- Sliding-Window Rate Limiter ---
+function createRateLimiter({ windowMs = 15 * 60 * 1000, max = 20, detail = "Too many requests. Please try again shortly." }) {
+  const buckets = new Map();
+  return (req, res, next) => {
+    const now = Date.now();
+    const ip = req.ip || req.socket?.remoteAddress || "unknown";
+    const recent = (buckets.get(ip) || []).filter((ts) => now - ts < windowMs);
+    if (recent.length >= max) {
+      const retryAfterSec = Math.ceil((windowMs - (now - recent[0])) / 1000);
+      res.setHeader("Retry-After", String(Math.max(1, retryAfterSec)));
+      return res.status(429).json({ detail });
     }
-  }
+    recent.push(now);
+    buckets.set(ip, recent);
+    if (buckets.size > 2000) {
+      for (const [k, timestamps] of buckets.entries()) {
+        if (!timestamps.some((ts) => now - ts < windowMs)) buckets.delete(k);
+      }
+    }
+    next();
+  };
+}
 
-  const initial = {
+const authLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 25,
+  detail: "Too many authentication attempts. Please wait a few minutes and try again.",
+});
+
+const checkoutLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  detail: "Too many checkout requests. Please wait a moment and try again.",
+});
+
+// --- Relational SQLite WAL Persistence Initialization ---
+function createInitialSeedState() {
+  const now = new Date().toISOString();
+  const seedProj = {
+    ...SEED_PROJECT,
+    user_id: SEED_USER.id,
+  };
+  return {
     users: [
       {
         ...SEED_USER,
+        plan: "free",
         password_hash: bcrypt.hashSync(SEED_USER.password, 10),
+        created_at: now,
+        updated_at: now,
       },
     ],
-    projects: [SEED_PROJECT],
+    projects: [seedProj],
     artifacts: {
       [SEED_PROJECT.id]: SEED_ARTIFACTS,
     },
     artifact_versions: {
       [SEED_PROJECT.id]: {
-        brief: [{ version_number: 1, content: SEED_ARTIFACTS.brief?.content, summary: "Initial brief approved", created_at: new Date().toISOString() }],
-        spec: [{ version_number: 1, content: SEED_ARTIFACTS.spec?.content, summary: "Product requirements spec", created_at: new Date().toISOString() }],
-        features: [{ version_number: 1, content: SEED_ARTIFACTS.features?.content, summary: "Initial feature list", created_at: new Date().toISOString() }],
-        architecture: [{ version_number: 1, content: SEED_ARTIFACTS.architecture?.content, summary: "Initial topology", created_at: new Date().toISOString() }],
-        schema: [{ version_number: 1, content: SEED_ARTIFACTS.schema?.content, summary: "PostgreSQL initial tables", created_at: new Date().toISOString() }],
-        api: [{ version_number: 1, content: SEED_ARTIFACTS.api?.content, summary: "REST API endpoints", created_at: new Date().toISOString() }],
-        roadmap: [{ version_number: 1, content: SEED_ARTIFACTS.roadmap?.content, summary: "Tasks roadmap", created_at: new Date().toISOString() }],
+        brief: [{ version_number: 1, content: SEED_ARTIFACTS.brief?.content, summary: "Initial brief approved", created_at: now }],
+        spec: [{ version_number: 1, content: SEED_ARTIFACTS.spec?.content, summary: "Product requirements spec", created_at: now }],
+        features: [{ version_number: 1, content: SEED_ARTIFACTS.features?.content, summary: "Initial feature list", created_at: now }],
+        architecture: [{ version_number: 1, content: SEED_ARTIFACTS.architecture?.content, summary: "Initial topology", created_at: now }],
+        schema: [{ version_number: 1, content: SEED_ARTIFACTS.schema?.content, summary: "PostgreSQL initial tables", created_at: now }],
+        api: [{ version_number: 1, content: SEED_ARTIFACTS.api?.content, summary: "REST API endpoints", created_at: now }],
+        roadmap: [{ version_number: 1, content: SEED_ARTIFACTS.roadmap?.content, summary: "Tasks roadmap", created_at: now }],
       },
     },
     decisions: {
@@ -98,7 +161,7 @@ function loadDb() {
           output_chars: 4120,
           duration_ms: 2100,
           notes: "Generated 7 REST endpoints matching book club organizer criteria.",
-          created_at: new Date().toISOString(),
+          created_at: now,
         },
       ],
     },
@@ -108,14 +171,26 @@ function loadDb() {
     subscriptions: {},
     transactions: [],
   };
-
-  fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2));
-  return initial;
 }
 
-let DB = loadDb();
+let DB = initializeSqliteDatabase(createInitialSeedState);
+
+// Ensure legacy migrated projects always have an explicit owner user_id (zero orphan leakage)
+let repairedOwners = false;
+const defaultOwnerId = DB.users.find((u) => u.id === SEED_USER.id)?.id || DB.users[0]?.id || null;
+for (const proj of DB.projects) {
+  if (!proj.user_id && defaultOwnerId) {
+    proj.user_id = defaultOwnerId;
+    repairedOwners = true;
+  }
+}
+
 function saveDb() {
-  fs.writeFileSync(DB_FILE, JSON.stringify(DB, null, 2));
+  persistStateToSqlite(DB);
+}
+
+if (repairedOwners) {
+  saveDb();
 }
 
 // --- Helper: Apply Structured Module Updates Directly Into Their Own Panels ---
@@ -398,12 +473,52 @@ function applyUpdatesToProject(pid, updates, { summaryNote = "Placed via AI Arch
   return { updatedKinds, versions: appliedVersions };
 }
 
-// --- Auth Middleware ---
+// --- Auth & Tenant Isolation Middleware ---
+const COOKIE_BASE = {
+  httpOnly: true,
+  secure: IS_PROD,
+  sameSite: "lax",
+  path: "/",
+};
+
+function sanitizeUser(user) {
+  const { password_hash, password: _pw, ...safeUser } = user;
+  safeUser.plan = user.plan || "free";
+  safeUser.subscription = DB.subscriptions?.[user.id] || user.subscription || null;
+  return safeUser;
+}
+
+function setAuthCookies(res, user) {
+  const token = jwt.sign(
+    { sub: user.id, email: user.email, type: "access" },
+    JWT_SECRET,
+    { expiresIn: "12h" }
+  );
+  const refresh = jwt.sign(
+    { sub: user.id, type: "refresh", jti: crypto.randomUUID() },
+    JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+  const expiresAtIso = new Date(Date.now() + REFRESH_TTL_MS).toISOString();
+  storeRefreshToken(refresh, user.id, expiresAtIso);
+
+  res.cookie("access_token", token, { ...COOKIE_BASE, maxAge: ACCESS_TTL_MS });
+  res.cookie("refresh_token", refresh, { ...COOKIE_BASE, maxAge: REFRESH_TTL_MS });
+}
+
+function clearAuthCookies(res) {
+  res.clearCookie("access_token", COOKIE_BASE);
+  res.clearCookie("refresh_token", COOKIE_BASE);
+}
+
 function authRequired(req, res, next) {
   const token = req.cookies?.access_token;
   if (!token) return res.status(401).json({ detail: "Not authenticated" });
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.type && decoded.type !== "access") {
+      return res.status(401).json({ detail: "Invalid access token type" });
+    }
     const user = DB.users.find((u) => u.id === decoded.sub);
     if (!user) return res.status(401).json({ detail: "User not found" });
     user.plan = user.plan || "free";
@@ -415,59 +530,159 @@ function authRequired(req, res, next) {
   }
 }
 
-function setAuthCookies(res, user) {
-  const token = jwt.sign({ sub: user.id, email: user.email }, JWT_SECRET, { expiresIn: "12h" });
-  const refresh = jwt.sign({ sub: user.id, type: "refresh" }, JWT_SECRET, { expiresIn: "7d" });
-  res.cookie("access_token", token, { httpOnly: true, secure: false, sameSite: "lax", path: "/" });
-  res.cookie("refresh_token", refresh, { httpOnly: true, secure: false, sameSite: "lax", path: "/" });
+/**
+ * Multi-tenant IDOR Protection Middleware across ALL /api/projects/:pid* routes.
+ * - Owner has full read/write/delete access.
+ * - Global sample projects (is_sample === true) allow read-only GET/preview exploration for any signed-in user,
+ *   but block non-owner writes/deletes with 403.
+ * - Cross-tenant private projects return 404 to prevent ID enumeration.
+ */
+function requireProjectAccess(req, res, next) {
+  const p = DB.projects.find((pr) => pr.id === req.params.pid);
+  if (!p) return res.status(404).json({ detail: "Project not found" });
+
+  if (p.user_id === req.user.id) {
+    req.project = p;
+    return next();
+  }
+
+  if (p.is_sample) {
+    const isReadOnlyRequest = req.method === "GET" || req.path === "/schema/preview";
+    if (isReadOnlyRequest) {
+      req.project = p;
+      return next();
+    }
+    return res.status(403).json({
+      detail: "Sample blueprint is read-only for guest accounts. Create your own project to edit.",
+    });
+  }
+
+  return res.status(404).json({ detail: "Project not found" });
 }
 
 // ========================
 // AUTH ENDPOINTS
 // ========================
 
-app.post("/api/auth/login", (req, res) => {
-  const { email, password } = req.body || {};
-  const user = DB.users.find((u) => u.email?.toLowerCase() === email?.toLowerCase());
-  if (!user) return res.status(400).json({ detail: "Incorrect email or password" });
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const valid = bcrypt.compareSync(password || "", user.password_hash || "");
+app.post("/api/auth/login", authLimiter, (req, res) => {
+  const rawEmail = String(req.body?.email || "").trim().toLowerCase();
+  const password = String(req.body?.password || "");
+  if (!rawEmail || !password) {
+    return res.status(400).json({ detail: "Email and password are required" });
+  }
+
+  const user = DB.users.find((u) => u.email?.toLowerCase() === rawEmail);
+  if (!user || !user.password_hash) {
+    return res.status(400).json({ detail: "Incorrect email or password" });
+  }
+
+  const valid = bcrypt.compareSync(password, user.password_hash);
   if (!valid) return res.status(400).json({ detail: "Incorrect email or password" });
 
   setAuthCookies(res, user);
-  const { password_hash, password: _, ...safeUser } = user;
-  safeUser.plan = user.plan || "free";
-  safeUser.subscription = DB.subscriptions?.[user.id] || user.subscription || null;
-  res.json(safeUser);
+  res.json(sanitizeUser(user));
 });
 
-app.post("/api/auth/register", (req, res) => {
-  const { email, password, name } = req.body || {};
-  if (!email || !password || !name) {
+app.post("/api/auth/register", authLimiter, (req, res) => {
+  const rawEmail = String(req.body?.email || "").trim().toLowerCase();
+  const rawName = String(req.body?.name || "").trim();
+  const password = req.body?.password;
+
+  if (!rawEmail || !password || !rawName) {
     return res.status(400).json({ detail: "All fields are required" });
   }
-  const existing = DB.users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+  if (!EMAIL_RE.test(rawEmail) || rawEmail.length > 254) {
+    return res.status(400).json({ detail: "Please enter a valid email address" });
+  }
+  if (rawName.length < 2 || rawName.length > 120) {
+    return res.status(400).json({ detail: "Name must be between 2 and 120 characters" });
+  }
+  if (typeof password !== "string" || password.length < 8 || password.length > 128) {
+    return res.status(400).json({ detail: "Password must be at least 8 characters" });
+  }
+
+  const existing = DB.users.find((u) => u.email?.toLowerCase() === rawEmail);
   if (existing) {
     return res.status(400).json({ detail: "An account with this email already exists" });
   }
 
+  const now = new Date().toISOString();
   const newUser = {
-    id: `usr-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    email,
-    name,
+    id: crypto.randomUUID(),
+    email: rawEmail,
+    name: rawName,
     picture: null,
     plan: "free",
     subscription: null,
     auth_provider: "password",
     password_hash: bcrypt.hashSync(password, 10),
-    created_at: new Date().toISOString(),
+    created_at: now,
+    updated_at: now,
   };
 
   DB.users.push(newUser);
   saveDb();
   setAuthCookies(res, newUser);
-  const { password_hash, ...safeUser } = newUser;
-  res.json(safeUser);
+  res.json(sanitizeUser(newUser));
+});
+
+app.post("/api/auth/google/session", authLimiter, async (req, res) => {
+  const sessionId = String(req.body?.session_id || "").trim();
+  if (!sessionId) {
+    return res.status(400).json({ detail: "Missing OAuth session_id" });
+  }
+
+  const sessionEndpoint =
+    process.env.GOOGLE_AUTH_SESSION_URL ||
+    "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data";
+
+  try {
+    const upstream = await fetch(sessionEndpoint, {
+      method: "GET",
+      headers: { "X-Session-ID": sessionId },
+      signal: AbortSignal.timeout(6000),
+    });
+
+    if (!upstream.ok) {
+      return res.status(401).json({ detail: "Google OAuth session expired or invalid" });
+    }
+
+    const profile = await upstream.json();
+    const email = String(profile?.email || "").trim().toLowerCase();
+    if (!email || !EMAIL_RE.test(email)) {
+      return res.status(401).json({ detail: "Google profile did not include a verified email" });
+    }
+
+    const now = new Date().toISOString();
+    let user = DB.users.find((u) => u.email?.toLowerCase() === email);
+    if (!user) {
+      user = {
+        id: crypto.randomUUID(),
+        email,
+        name: String(profile?.name || email.split("@")[0]).slice(0, 120),
+        picture: profile?.picture || null,
+        plan: "free",
+        subscription: null,
+        auth_provider: "google",
+        password_hash: null,
+        created_at: now,
+        updated_at: now,
+      };
+      DB.users.push(user);
+    } else {
+      if (profile?.picture && !user.picture) user.picture = profile.picture;
+      user.updated_at = now;
+    }
+
+    saveDb();
+    setAuthCookies(res, user);
+    return res.json(sanitizeUser(user));
+  } catch (err) {
+    console.warn("[OAuth] Google session exchange error:", err.message);
+    return res.status(401).json({ detail: "Unable to verify Google sign-in session" });
+  }
 });
 
 app.get("/api/auth/me", (req, res) => {
@@ -475,20 +690,20 @@ app.get("/api/auth/me", (req, res) => {
   if (!token) return res.status(401).json({ detail: "Not authenticated" });
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.type && decoded.type !== "access") {
+      return res.status(401).json({ detail: "Invalid access token" });
+    }
     const user = DB.users.find((u) => u.id === decoded.sub);
     if (!user) return res.status(401).json({ detail: "User not found" });
-    const { password_hash, ...safeUser } = user;
-    safeUser.plan = user.plan || "free";
-    safeUser.subscription = DB.subscriptions?.[user.id] || user.subscription || null;
-    res.json(safeUser);
+    res.json(sanitizeUser(user));
   } catch {
     return res.status(401).json({ detail: "Session expired" });
   }
 });
 
 app.post("/api/auth/logout", (req, res) => {
-  res.clearCookie("access_token");
-  res.clearCookie("refresh_token");
+  revokeRefreshToken(req.cookies?.refresh_token);
+  clearAuthCookies(res);
   res.json({ ok: true });
 });
 
@@ -497,11 +712,24 @@ app.post("/api/auth/refresh", (req, res) => {
   if (!refToken) return res.status(401).json({ detail: "No refresh token" });
   try {
     const decoded = jwt.verify(refToken, JWT_SECRET);
+    if (decoded.type !== "refresh") {
+      clearAuthCookies(res);
+      return res.status(401).json({ detail: "Invalid refresh token type" });
+    }
+    const stored = consumeRefreshToken(refToken);
+    if (!stored || stored.user_id !== decoded.sub) {
+      clearAuthCookies(res);
+      return res.status(401).json({ detail: "Refresh token expired or revoked" });
+    }
     const user = DB.users.find((u) => u.id === decoded.sub);
-    if (!user) return res.status(401).json({ detail: "User not found" });
+    if (!user) {
+      clearAuthCookies(res);
+      return res.status(401).json({ detail: "User not found" });
+    }
     setAuthCookies(res, user);
     res.json({ ok: true });
   } catch {
+    clearAuthCookies(res);
     return res.status(401).json({ detail: "Invalid refresh token" });
   }
 });
@@ -513,7 +741,7 @@ app.post("/api/auth/refresh", (req, res) => {
 app.get("/api/projects", authRequired, (req, res) => {
   const includeArchived = req.query.include_archived === "true";
   const list = DB.projects
-    .filter((p) => (p.user_id === req.user.id || p.is_sample || !p.user_id) && (includeArchived || p.status !== "archived"))
+    .filter((p) => (p.user_id === req.user.id || p.is_sample) && (includeArchived || p.status !== "archived"))
     .map((p) => {
       const arts = DB.artifacts[p.id] || {};
       const tasks = arts.roadmap?.content?.tasks || [];
@@ -526,7 +754,7 @@ app.get("/api/projects", authRequired, (req, res) => {
       return {
         ...p,
         approved,
-        artifacts: Object.keys(arts).length || 7,
+        artifacts: Object.keys(arts).length || ARTIFACT_KINDS.length,
         needs_review: needsReview,
         tasks_total: tasks.length,
         tasks_done: tasks.filter((t) => t.status === "completed").length,
@@ -560,10 +788,12 @@ app.post("/api/projects", authRequired, async (req, res) => {
     });
   }
 
-  const pid = `proj-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const pid = crypto.randomUUID();
   const now = new Date().toISOString();
-  const initialName = name?.trim() || "New Project";
-  const initialDesc = description?.trim() || (idea_prompt ? idea_prompt.trim().slice(0, 240) : "New software blueprint");
+  const initialName = String(name || "").trim().slice(0, 180) || "New Project";
+  const initialDesc =
+    String(description || "").trim().slice(0, 500) ||
+    (idea_prompt ? String(idea_prompt).trim().slice(0, 240) : "New software blueprint");
 
   const newProject = {
     id: pid,
@@ -576,7 +806,7 @@ app.post("/api/projects", authRequired, async (req, res) => {
     created_at: now,
     updated_at: now,
     approved: 0,
-    artifacts: 7,
+    artifacts: ARTIFACT_KINDS.length,
     needs_review: 0,
     tasks_total: 3,
     tasks_done: 0,
@@ -658,9 +888,11 @@ app.post("/api/projects", authRequired, async (req, res) => {
   res.json(newProject);
 });
 
-app.get("/api/projects/:pid", authRequired, (req, res) => {
-  const p = DB.projects.find((pr) => pr.id === req.params.pid);
-  if (!p) return res.status(404).json({ detail: "Project not found" });
+// Mount centralized IDOR & tenant ownership guard across ALL /api/projects/:pid* routes
+app.use("/api/projects/:pid", authRequired, requireProjectAccess);
+
+app.get("/api/projects/:pid", (req, res) => {
+  const p = req.project;
 
   const arts = DB.artifacts[p.id] || {};
   const artifactSummaries = {};
@@ -716,13 +948,16 @@ app.get("/api/projects/:pid", authRequired, (req, res) => {
   res.json(result);
 });
 
-app.patch("/api/projects/:pid", authRequired, (req, res) => {
-  const p = DB.projects.find((pr) => pr.id === req.params.pid);
-  if (!p) return res.status(404).json({ detail: "Project not found" });
+app.patch("/api/projects/:pid", (req, res) => {
+  const p = req.project;
 
-  if (req.body.name !== undefined) p.name = req.body.name;
-  if (req.body.description !== undefined) p.description = req.body.description;
-  if (req.body.status !== undefined) {
+  if (typeof req.body?.name === "string" && req.body.name.trim()) {
+    p.name = req.body.name.trim().slice(0, 180);
+  }
+  if (typeof req.body?.description === "string") {
+    p.description = req.body.description.slice(0, 1000);
+  }
+  if (req.body?.status === "active" || req.body?.status === "archived") {
     p.status = req.body.status;
     p.archived_at = req.body.status === "archived" ? new Date().toISOString() : null;
   }
@@ -732,7 +967,7 @@ app.patch("/api/projects/:pid", authRequired, (req, res) => {
   res.json(p);
 });
 
-app.delete("/api/projects/:pid", authRequired, (req, res) => {
+app.delete("/api/projects/:pid", (req, res) => {
   DB.projects = DB.projects.filter((pr) => pr.id !== req.params.pid);
   delete DB.artifacts[req.params.pid];
   delete DB.artifact_versions[req.params.pid];
@@ -748,9 +983,7 @@ app.delete("/api/projects/:pid", authRequired, (req, res) => {
 // AI ARCHITECT CHAT PANEL ENDPOINTS
 // ========================
 
-app.get("/api/projects/:pid/chat", authRequired, (req, res) => {
-  const p = DB.projects.find((pr) => pr.id === req.params.pid);
-  if (!p) return res.status(404).json({ detail: "Project not found" });
+app.get("/api/projects/:pid/chat", (req, res) => {
   const list = DB.chats[req.params.pid] || [];
   res.json({
     messages: list,
@@ -758,9 +991,8 @@ app.get("/api/projects/:pid/chat", authRequired, (req, res) => {
   });
 });
 
-app.post("/api/projects/:pid/chat", authRequired, async (req, res) => {
-  const p = DB.projects.find((pr) => pr.id === req.params.pid);
-  if (!p) return res.status(404).json({ detail: "Project not found" });
+app.post("/api/projects/:pid/chat", async (req, res) => {
+  const p = req.project;
 
   const { message, targets = null, auto_apply = true, llm_config = null } = req.body || {};
   if (!message || !String(message).trim()) {
@@ -834,7 +1066,7 @@ app.post("/api/projects/:pid/chat", authRequired, async (req, res) => {
   });
 });
 
-app.post("/api/projects/:pid/chat/:msgId/apply", authRequired, (req, res) => {
+app.post("/api/projects/:pid/chat/:msgId/apply", (req, res) => {
   const list = DB.chats[req.params.pid] || [];
   const msg = list.find((m) => m.id === req.params.msgId);
   if (!msg || !msg.pending_updates) {
@@ -875,7 +1107,7 @@ app.post("/api/projects/:pid/chat/:msgId/apply", authRequired, (req, res) => {
   });
 });
 
-app.delete("/api/projects/:pid/chat", authRequired, (req, res) => {
+app.delete("/api/projects/:pid/chat", (req, res) => {
   DB.chats[req.params.pid] = [];
   saveDb();
   res.json({ ok: true });
@@ -885,9 +1117,8 @@ app.delete("/api/projects/:pid/chat", authRequired, (req, res) => {
 // SEPARATE MODULE MARKDOWN DOCS ENDPOINTS
 // ========================
 
-app.get("/api/projects/:pid/docs", authRequired, (req, res) => {
-  const p = DB.projects.find((pr) => pr.id === req.params.pid);
-  if (!p) return res.status(404).json({ detail: "Project not found" });
+app.get("/api/projects/:pid/docs", (req, res) => {
+  const p = req.project;
   const arts = DB.artifacts[req.params.pid] || {};
   const decs = DB.decisions[req.params.pid] || [];
   const customDocs = DB.module_docs[req.params.pid] || {};
@@ -895,12 +1126,11 @@ app.get("/api/projects/:pid/docs", authRequired, (req, res) => {
   res.json({ modules });
 });
 
-app.put("/api/projects/:pid/docs/:docKind", authRequired, (req, res) => {
-  const p = DB.projects.find((pr) => pr.id === req.params.pid);
-  if (!p) return res.status(404).json({ detail: "Project not found" });
+app.put("/api/projects/:pid/docs/:docKind", (req, res) => {
+  const p = req.project;
   if (!DB.module_docs[req.params.pid]) DB.module_docs[req.params.pid] = {};
   DB.module_docs[req.params.pid][req.params.docKind] = {
-    notes: req.body?.notes ?? "",
+    notes: String(req.body?.notes ?? ""),
     updated_at: new Date().toISOString(),
   };
   saveDb();
@@ -910,9 +1140,8 @@ app.put("/api/projects/:pid/docs/:docKind", authRequired, (req, res) => {
   res.json({ ok: true, modules });
 });
 
-app.get("/api/projects/:pid/export/markdown/:docKind", authRequired, (req, res) => {
-  const p = DB.projects.find((pr) => pr.id === req.params.pid);
-  if (!p) return res.status(404).json({ detail: "Project not found" });
+app.get("/api/projects/:pid/export/markdown/:docKind", (req, res) => {
+  const p = req.project;
   const arts = DB.artifacts[req.params.pid] || {};
   const decs = DB.decisions[req.params.pid] || [];
   const customDocs = DB.module_docs[req.params.pid] || {};
@@ -927,7 +1156,7 @@ app.get("/api/projects/:pid/export/markdown/:docKind", authRequired, (req, res) 
 // ARTIFACTS ENDPOINTS
 // ========================
 
-app.get("/api/projects/:pid/artifacts/:kind", authRequired, (req, res) => {
+app.get("/api/projects/:pid/artifacts/:kind", (req, res) => {
   const arts = DB.artifacts[req.params.pid];
   if (!arts) return res.status(404).json({ detail: "Project artifacts not found" });
   const art = arts[req.params.kind];
@@ -935,7 +1164,7 @@ app.get("/api/projects/:pid/artifacts/:kind", authRequired, (req, res) => {
   res.json(art);
 });
 
-app.put("/api/projects/:pid/artifacts/:kind", authRequired, (req, res) => {
+app.put("/api/projects/:pid/artifacts/:kind", (req, res) => {
   const { content, summary, version = true } = req.body || {};
   const arts = DB.artifacts[req.params.pid];
   if (!arts || !arts[req.params.kind]) {
@@ -987,7 +1216,7 @@ app.put("/api/projects/:pid/artifacts/:kind", authRequired, (req, res) => {
   res.json({ artifact: artObj.artifact, content: artObj.content, impact });
 });
 
-app.post("/api/projects/:pid/artifacts/:kind/approve", authRequired, (req, res) => {
+app.post("/api/projects/:pid/artifacts/:kind/approve", (req, res) => {
   const arts = DB.artifacts[req.params.pid];
   const artObj = arts?.[req.params.kind];
   if (!artObj) return res.status(404).json({ detail: "Artifact not found" });
@@ -1014,7 +1243,7 @@ app.post("/api/projects/:pid/artifacts/:kind/approve", authRequired, (req, res) 
   res.json({ ok: true, artifact: artObj.artifact });
 });
 
-app.post("/api/projects/:pid/artifacts/:kind/resolve-review", authRequired, (req, res) => {
+app.post("/api/projects/:pid/artifacts/:kind/resolve-review", (req, res) => {
   const arts = DB.artifacts[req.params.pid];
   const artObj = arts?.[req.params.kind];
   if (artObj) {
@@ -1025,12 +1254,12 @@ app.post("/api/projects/:pid/artifacts/:kind/resolve-review", authRequired, (req
   res.json({ ok: true });
 });
 
-app.get("/api/projects/:pid/artifacts/:kind/versions", authRequired, (req, res) => {
+app.get("/api/projects/:pid/artifacts/:kind/versions", (req, res) => {
   const list = DB.artifact_versions[req.params.pid]?.[req.params.kind] || [];
   res.json(list);
 });
 
-app.post("/api/projects/:pid/artifacts/:kind/versions/:v/restore", authRequired, (req, res) => {
+app.post("/api/projects/:pid/artifacts/:kind/versions/:v/restore", (req, res) => {
   const vNum = parseInt(req.params.v, 10);
   const list = DB.artifact_versions[req.params.pid]?.[req.params.kind] || [];
   const target = list.find((item) => item.version_number === vNum);
@@ -1051,7 +1280,7 @@ app.post("/api/projects/:pid/artifacts/:kind/versions/:v/restore", authRequired,
   res.json({ content: artObj.content, artifact: artObj.artifact });
 });
 
-app.post("/api/projects/:pid/items/resolve-review", authRequired, (req, res) => {
+app.post("/api/projects/:pid/items/resolve-review", (req, res) => {
   const { type, id } = req.body || {};
   const arts = DB.artifacts[req.params.pid];
   if (arts && type === "endpoint") {
@@ -1075,21 +1304,21 @@ app.post("/api/projects/:pid/items/resolve-review", authRequired, (req, res) => 
 // DECISIONS (ADRs)
 // ========================
 
-app.get("/api/projects/:pid/decisions", authRequired, (req, res) => {
+app.get("/api/projects/:pid/decisions", (req, res) => {
   const list = DB.decisions[req.params.pid] || [];
   res.json(list);
 });
 
-app.post("/api/projects/:pid/decisions", authRequired, (req, res) => {
+app.post("/api/projects/:pid/decisions", (req, res) => {
   const { title, category, decision, reasoning } = req.body || {};
   if (!title || !decision) return res.status(400).json({ detail: "Title and decision are required" });
 
   const newDec = {
     id: `dec-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    title,
-    category: category || "architecture",
-    decision,
-    reasoning: reasoning || "",
+    title: String(title).slice(0, 240),
+    category: String(category || "architecture").slice(0, 50),
+    decision: String(decision),
+    reasoning: String(reasoning || ""),
     artifact_kind: null,
     created_at: new Date().toISOString(),
   };
@@ -1104,13 +1333,37 @@ app.post("/api/projects/:pid/decisions", authRequired, (req, res) => {
 // TASKS (ROADMAP)
 // ========================
 
-app.patch("/api/projects/:pid/tasks/:taskId", authRequired, (req, res) => {
+const ALLOWED_TASK_FIELDS = [
+  "title",
+  "deliverable",
+  "status",
+  "complexity",
+  "milestone",
+  "files",
+  "acceptance_criteria",
+  "depends_on",
+  "needs_review",
+  "review_reason",
+  "notes",
+];
+const VALID_TASK_STATUSES = new Set(["ready", "in_progress", "review", "completed", "blocked"]);
+
+app.patch("/api/projects/:pid/tasks/:taskId", (req, res) => {
   const arts = DB.artifacts[req.params.pid];
   const roadmap = arts?.roadmap?.content?.tasks || [];
   const task = roadmap.find((t) => t.id === req.params.taskId);
   if (!task) return res.status(404).json({ detail: "Task not found" });
 
-  Object.assign(task, req.body);
+  const patch = req.body || {};
+  for (const key of ALLOWED_TASK_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(patch, key)) {
+      if (key === "status" && !VALID_TASK_STATUSES.has(patch.status)) {
+        return res.status(400).json({ detail: "Invalid task status" });
+      }
+      task[key] = patch[key];
+    }
+  }
+
   saveDb();
   res.json(task);
 });
@@ -1119,7 +1372,7 @@ app.patch("/api/projects/:pid/tasks/:taskId", authRequired, (req, res) => {
 // SCHEMA DDL & EXPORTS
 // ========================
 
-app.post("/api/projects/:pid/schema/preview", authRequired, (req, res) => {
+app.post("/api/projects/:pid/schema/preview", (req, res) => {
   const schema = req.body?.content || {};
   const sql = generateSql(schema);
   const prisma = generatePrisma(schema);
@@ -1127,7 +1380,7 @@ app.post("/api/projects/:pid/schema/preview", authRequired, (req, res) => {
   res.json({ sql, prisma, issues });
 });
 
-app.get("/api/projects/:pid/schema/code", authRequired, (req, res) => {
+app.get("/api/projects/:pid/schema/code", (req, res) => {
   const arts = DB.artifacts[req.params.pid];
   const schema = arts?.schema?.content || {};
   const sql = generateSql(schema);
@@ -1136,8 +1389,8 @@ app.get("/api/projects/:pid/schema/code", authRequired, (req, res) => {
   res.json({ sql, prisma, issues });
 });
 
-app.get("/api/projects/:pid/export/markdown", authRequired, (req, res) => {
-  const p = DB.projects.find((pr) => pr.id === req.params.pid);
+app.get("/api/projects/:pid/export/markdown", (req, res) => {
+  const p = req.project;
   const arts = DB.artifacts[req.params.pid] || {};
   const decs = DB.decisions[req.params.pid] || [];
   const customDocs = DB.module_docs[req.params.pid] || {};
@@ -1163,26 +1416,26 @@ app.get("/api/ai/workflows", authRequired, (req, res) => {
   res.json(WORKFLOWS);
 });
 
-app.get("/api/projects/:pid/ai/jobs", authRequired, (req, res) => {
+app.get("/api/projects/:pid/ai/jobs", (req, res) => {
   const jobs = DB.ai_jobs[req.params.pid] || [];
   res.json(jobs);
 });
 
-app.get("/api/projects/:pid/ai/jobs/:id", authRequired, (req, res) => {
+app.get("/api/projects/:pid/ai/jobs/:id", (req, res) => {
   const jobs = DB.ai_jobs[req.params.pid] || [];
   const j = jobs.find((job) => job.id === req.params.id);
   if (!j) return res.status(404).json({ detail: "Job not found" });
   res.json(j);
 });
 
-app.post("/api/projects/:pid/ai/:workflow", authRequired, async (req, res) => {
+app.post("/api/projects/:pid/ai/:workflow", async (req, res) => {
   const wf = WORKFLOWS.find((w) => w.id === req.params.workflow);
   if (!wf) return res.status(404).json({ detail: "Workflow not found" });
 
   const start = Date.now();
-  const p = DB.projects.find((pr) => pr.id === req.params.pid);
+  const p = req.project;
   const arts = DB.artifacts[req.params.pid] || {};
-  const instructions = req.body?.instructions || "";
+  const instructions = String(req.body?.instructions || "");
   const prompt = instructions.trim() || `${wf.label} for ${p?.name || "this project"}: ${p?.description || ""}`;
 
   const plan = await runArchitectChat({
@@ -1218,14 +1471,14 @@ app.post("/api/projects/:pid/ai/:workflow", authRequired, async (req, res) => {
   res.json(job);
 });
 
-app.post("/api/projects/:pid/ai/jobs/:id/accept", authRequired, (req, res) => {
+app.post("/api/projects/:pid/ai/jobs/:id/accept", (req, res) => {
   const jobs = DB.ai_jobs[req.params.pid] || [];
   const j = jobs.find((job) => job.id === req.params.id);
   if (!j) return res.status(404).json({ detail: "Job not found" });
 
   const contentToApply = req.body?.content || j.output;
   const arts = DB.artifacts[req.params.pid];
-  const artObj = arts[j.target_kind];
+  const artObj = arts?.[j.target_kind];
   if (!artObj) return res.status(404).json({ detail: "Target artifact not found" });
 
   artObj.content = contentToApply;
@@ -1249,7 +1502,7 @@ app.post("/api/projects/:pid/ai/jobs/:id/accept", authRequired, (req, res) => {
   res.json({ ok: true, artifact: artObj.artifact, impact: { artifacts: [j.target_kind] } });
 });
 
-app.post("/api/projects/:pid/ai/jobs/:id/discard", authRequired, (req, res) => {
+app.post("/api/projects/:pid/ai/jobs/:id/discard", (req, res) => {
   const jobs = DB.ai_jobs[req.params.pid] || [];
   const j = jobs.find((job) => job.id === req.params.id);
   if (j) {
@@ -1292,7 +1545,7 @@ app.get("/api/billing/subscription", authRequired, (req, res) => {
   });
 });
 
-app.post("/api/billing/checkout", authRequired, async (req, res) => {
+app.post("/api/billing/checkout", authRequired, checkoutLimiter, async (req, res) => {
   try {
     const { plan, interval, redirect_url } = req.body || {};
     const session = await createCheckoutSession({
@@ -1311,12 +1564,17 @@ app.post("/api/billing/webhook/lemonsqueezy", async (req, res) => {
   const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
   const signature = req.headers["x-signature"];
 
+  if (IS_PROD && !secret) {
+    console.error("[Webhook] LEMONSQUEEZY_WEBHOOK_SECRET is missing in production.");
+    return res.status(503).json({ error: "Webhook verification secret not configured" });
+  }
+
   if (secret) {
     const raw = req.rawBody || JSON.stringify(req.body);
     const isValid = verifyLemonSqueezySignature(raw, signature, secret);
     if (!isValid) {
-      console.warn("Invalid Lemon Squeezy webhook signature received");
-      return res.status(400).json({ error: "Invalid webhook signature" });
+      console.warn("[Webhook] Invalid Lemon Squeezy webhook signature rejected");
+      return res.status(401).json({ error: "Invalid webhook signature" });
     }
   }
 
@@ -1330,6 +1588,10 @@ app.post("/api/billing/webhook/lemonsqueezy", async (req, res) => {
 });
 
 app.post("/api/billing/dev-simulate-webhook", authRequired, (req, res) => {
+  if (IS_PROD) {
+    return res.status(403).json({ detail: "Webhook simulator is disabled in production" });
+  }
+
   const { event_name = "subscription_created", plan = "pro", interval = "monthly" } = req.body || {};
   const mockPayload = {
     meta: {
@@ -1366,10 +1628,27 @@ app.get("/api/billing/portal", authRequired, (req, res) => {
 });
 
 app.get("/api/health", (req, res) => {
-  res.json({ ok: true });
+  const database = getDatabaseHealth();
+  res.json({
+    ok: database.ok,
+    env: IS_PROD ? "production" : "development",
+    database,
+  });
 });
+
+// --- Production Static SPA Bundle Serving ---
+const DIST_DIR = path.resolve(__dirname, "..", "dist");
+if (IS_PROD && fs.existsSync(DIST_DIR)) {
+  app.use(express.static(DIST_DIR));
+  app.use((req, res, next) => {
+    if (req.method === "GET" && !req.path.startsWith("/api")) {
+      return res.sendFile(path.join(DIST_DIR, "index.html"));
+    }
+    next();
+  });
+}
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Formora API Server listening on http://localhost:${PORT}`);
+  console.log(`Formora API Server listening on http://localhost:${PORT} [${IS_PROD ? "production" : "development"}]`);
 });
