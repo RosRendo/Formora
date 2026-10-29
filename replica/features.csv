@@ -1,0 +1,36 @@
+feature,area,priority,original,clone,notes
+User authentication with email and password,auth,must,yes,yes,JWT in HttpOnly secure cookies + bcrypt
+User registration with name email and password,auth,must,yes,yes,Validates email uniqueness and hashes password
+JWT session cookies with refresh and logout,auth,must,yes,yes,12h access token + 7d refresh token rotation
+Dashboard with KPI counters and 8-step pipeline tracker,dashboard,must,yes,yes,Greeting stats recent projects and pipeline
+Project listing with search and archived filter,projects,must,yes,yes,Includes search filter and status badges
+Guided new project creation wizard with brief questions,projects,must,yes,yes,Initializes 7 artifacts from wizard answers
+Seeded sample project (Shelfmate) with full blueprint data,projects,must,yes,yes,Exact replica of live demo project
+Project Overview with status matrix and recent decisions,overview,must,yes,yes,Summary health score and ADR feed
+Project Brief editor with structured constraints and assumptions,artifacts,must,yes,yes,Live draft version bump and approval
+Product Requirements (PRD) editor with sections and lists,artifacts,must,yes,yes,Full PRD tabs and item editors
+Features & Stories manager with priorities and modal editor,artifacts,must,yes,yes,User stories complexity and dependencies
+Tech Stack analyzer and evaluator with recommendations,artifacts,must,yes,yes,Stack comparison based on brief
+Interactive Architecture canvas with nodes edges and lint rules,artifacts,must,yes,yes,@xyflow/react canvas with live linter
+Database ERD designer with visual table editor and relations,artifacts,must,yes,yes,Visual table nodes fields keys and relations
+Live SQL DDL generation from ERD entities,database,must,yes,yes,Deterministic PostgreSQL CREATE TABLE and FKs
+Live Prisma schema generation from ERD entities,database,must,yes,yes,Prisma schema model generator
+API Catalog and endpoint explorer with methods and bodies,artifacts,must,yes,yes,REST catalog methods and schemas
+Roadmap task board with phase groupings and statuses,roadmap,must,yes,yes,Status toggling and phase groupings
+Architecture Decision Records (ADR) logger and history,decisions,must,yes,yes,ADR creation modal and timeline
+Artifact versioning and version restoration,versioning,must,yes,yes,Immutable version log with rollback
+Review flag notification and impact announcement,review,must,yes,yes,Cross-artifact impact analysis on changes
+Export full project blueprint as Markdown,export,must,yes,yes,Comprehensive multi-page Markdown generator
+Export database schema code as SQL and Prisma,export,should,yes,yes,Instant file download in ExportMenu
+Dark and light theme toggle with persistent preference,ui,should,yes,yes,Next-themes with IBM Plex + JetBrains Mono
+AI Assistant panel with workflow triggers and diff review,ai,should,yes,yes,6 workflows with line diffing and accept
+Diff viewer highlighting added and removed lines,ui,should,yes,yes,LCS line diff with reference name resolution
+Mobile responsive drawer and adaptive navigation,ui,should,yes,yes,Sheet drawer on mobile screens
+Project settings with rename and archive controls,settings,should,yes,yes,Project rename archive and delete
+Delete project with danger confirmation dialog,settings,should,yes,yes,Radix alert dialog confirmation
+Resolve review badges per item and per artifact,review,should,yes,yes,Clear review flags on artifacts and items
+Interactive animated SVG architecture hero on login,ui,could,yes,yes,Animated nodes and dashed SVG paths
+Task status transitions (ready in_progress completed),roadmap,could,yes,yes,Interactive task status updates
+Later phase preview screens (User Flows UI Security),ui,could,yes,yes,Preview cards for future phases
+Pre-seeded AI proposal decision entries,decisions,could,yes,yes,Pre-seeded ADR entries matching live state
+EmergentAgent proprietary OAuth proxy,auth,skip,yes,skip,Replaced by standard auth endpoints

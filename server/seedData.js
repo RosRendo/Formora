@@ -1,0 +1,1957 @@
+// Pre-seeded Blueprint OS sample data
+export const SEED_USER = {
+  id: "57a6bb81-a6e6-4b67-bb2e-0017a50bf26a",
+  email: "demo@blueprintos.dev",
+  name: "Demo Founder",
+  password: "Blueprint123!",
+  auth_provider: "password"
+};
+
+export const SEED_PROJECT = {
+  "id": "022c47ed-0777-455b-87bd-7d57a57c7f83",
+  "name": "Shelfmate (sample)",
+  "description": "Sample blueprint: a book club organizer. Explore or delete it.",
+  "status": "active",
+  "is_sample": true,
+  "archived_at": null,
+  "created_at": "2026-10-28T09:57:53.491871+00:00",
+  "updated_at": "2026-10-28T10:01:29.496789+00:00",
+  "artifacts": {
+    "brief": {
+      "kind": "brief",
+      "status": "approved",
+      "current_version": 1,
+      "approved_version": 1,
+      "approved_at": null,
+      "needs_review": false,
+      "review_reason": null,
+      "updated_at": "2026-10-28T09:57:56.371609+00:00"
+    },
+    "spec": {
+      "kind": "spec",
+      "status": "approved",
+      "current_version": 1,
+      "approved_version": 1,
+      "approved_at": null,
+      "needs_review": false,
+      "review_reason": null,
+      "updated_at": "2026-10-28T09:57:58.711355+00:00"
+    },
+    "features": {
+      "kind": "features",
+      "status": "approved",
+      "current_version": 1,
+      "approved_version": 1,
+      "approved_at": null,
+      "needs_review": false,
+      "review_reason": null,
+      "updated_at": "2026-10-28T09:58:01.591000+00:00"
+    },
+    "architecture": {
+      "kind": "architecture",
+      "status": "approved",
+      "current_version": 1,
+      "approved_version": 1,
+      "approved_at": null,
+      "needs_review": false,
+      "review_reason": null,
+      "updated_at": "2026-10-28T09:58:05.949452+00:00"
+    },
+    "schema": {
+      "kind": "schema",
+      "status": "changed",
+      "current_version": 2,
+      "approved_version": 1,
+      "approved_at": null,
+      "needs_review": false,
+      "review_reason": null,
+      "updated_at": "2026-10-28T10:01:29.283856+00:00"
+    },
+    "api": {
+      "kind": "api",
+      "status": "draft",
+      "current_version": 2,
+      "approved_version": null,
+      "approved_at": null,
+      "needs_review": true,
+      "review_reason": "Upstream schema changed (v2)",
+      "updated_at": "2026-10-28T10:01:28.431275+00:00"
+    },
+    "roadmap": {
+      "kind": "roadmap",
+      "status": "draft",
+      "current_version": 1,
+      "approved_version": null,
+      "approved_at": null,
+      "needs_review": true,
+      "review_reason": "Upstream schema changed (v2)",
+      "updated_at": "2026-10-28T10:01:28.644370+00:00"
+    }
+  },
+  "task_counts": {
+    "completed": 1,
+    "in_progress": 1,
+    "blocked": 4,
+    "ready": 1
+  },
+  "tasks_total": 7,
+  "flagged": {
+    "endpoints": [
+      {
+        "id": "459ca4da-8def-4b1b-b984-d11af66686ae",
+        "label": "POST /api/clubs",
+        "reason": "Upstream schema changed (v2)"
+      },
+      {
+        "id": "9a4c2e7f-3b1d-4c6e-8f0a-5d7b9c1e3f62",
+        "label": "PUT /api/clubs/:id/meetups/:mid/rsvp",
+        "reason": "Upstream schema changed (v2)"
+      },
+      {
+        "id": "20120339-8777-4fa5-b221-cade94fa204a",
+        "label": "PUT /api/clubs/:id/vote",
+        "reason": "Upstream schema changed (v2)"
+      },
+      {
+        "id": "8c1f3e2a-5b7d-4e9a-9c41-2f6a7d8e1b03",
+        "label": "POST /api/clubs/:id/invites",
+        "reason": "Upstream schema changed (v2)"
+      },
+      {
+        "id": "3d9a7b61-0e4c-4f28-a5d2-7c8b9e0f1a24",
+        "label": "POST /api/invites/:token/accept",
+        "reason": "Upstream schema changed (v2)"
+      }
+    ],
+    "tasks": [
+      {
+        "id": "d920feab-7ea1-47d9-a625-49eac145e21d",
+        "title": "Create Prisma schema and first migration",
+        "reason": "Upstream schema changed (v2)"
+      },
+      {
+        "id": "9a696ce4-3fdd-42ce-bb2b-1baa82edad93",
+        "title": "Create club endpoint",
+        "reason": "Upstream schema changed (v2)"
+      },
+      {
+        "id": "5183a6c2-a50b-45d7-a79f-afa7a809be02",
+        "title": "Voting endpoint with one-vote rule",
+        "reason": "Upstream schema changed (v2)"
+      }
+    ]
+  },
+  "ai_usage": {
+    "jobs": 1,
+    "chars": 25333
+  }
+};
+
+export const SEED_ARTIFACTS = {
+  "brief": {
+    "artifact": {
+      "kind": "brief",
+      "status": "approved",
+      "current_version": 1,
+      "approved_version": 1,
+      "approved_at": null,
+      "needs_review": false,
+      "review_reason": null,
+      "updated_at": "2026-10-28T09:57:56.371609+00:00"
+    },
+    "content": {
+      "auth": "Email magic link",
+      "name": "Shelfmate",
+      "scale": "Up to 1,000 clubs in year one",
+      "budget": "Under $50/month",
+      "hosting": "Vercel + managed Postgres",
+      "database": "PostgreSQL",
+      "deadline": "8 weeks",
+      "payments": "Not in MVP",
+      "platform": "Web (responsive)",
+      "problems": "Scheduling and book selection are scattered across group chats and spreadsheets.",
+      "languages": "TypeScript",
+      "assumptions": [
+        {
+          "field": "payments",
+          "assumption": "Paid plan is deferred to Phase 2; MVP is free."
+        }
+      ],
+      "description": "A lightweight organizer for small book clubs: pick books, schedule meetups and keep discussion notes in one place.",
+      "mvp_features": [
+        "Create a club and invite members",
+        "Propose and vote on books",
+        "Schedule meetups with RSVP"
+      ],
+      "target_users": "Organizers and members of book clubs with 5\u201330 people",
+      "available_time": "15 hours per week",
+      "business_model": "Freemium: free for one club, paid plan for multiple clubs"
+    },
+    "approved_content": {
+      "auth": "Email magic link",
+      "name": "Shelfmate",
+      "scale": "Up to 1,000 clubs in year one",
+      "budget": "Under $50/month",
+      "hosting": "Vercel + managed Postgres",
+      "database": "PostgreSQL",
+      "deadline": "8 weeks",
+      "payments": "Not in MVP",
+      "platform": "Web (responsive)",
+      "problems": "Scheduling and book selection are scattered across group chats and spreadsheets.",
+      "languages": "TypeScript",
+      "assumptions": [
+        {
+          "field": "payments",
+          "assumption": "Paid plan is deferred to Phase 2; MVP is free."
+        }
+      ],
+      "description": "A lightweight organizer for small book clubs: pick books, schedule meetups and keep discussion notes in one place.",
+      "mvp_features": [
+        "Create a club and invite members",
+        "Propose and vote on books",
+        "Schedule meetups with RSVP"
+      ],
+      "target_users": "Organizers and members of book clubs with 5\u201330 people",
+      "available_time": "15 hours per week",
+      "business_model": "Freemium: free for one club, paid plan for multiple clubs"
+    }
+  },
+  "spec": {
+    "artifact": {
+      "kind": "spec",
+      "status": "approved",
+      "current_version": 1,
+      "approved_version": 1,
+      "approved_at": null,
+      "needs_review": false,
+      "review_reason": null,
+      "updated_at": "2026-10-28T09:57:58.711355+00:00"
+    },
+    "content": {
+      "goals": [
+        {
+          "goal": "Clubs schedule meetups in-app",
+          "metric": "60% of active clubs schedule \u22651 meetup/month"
+        },
+        {
+          "goal": "Members participate in book votes",
+          "metric": "Average 70% member vote participation"
+        }
+      ],
+      "risks": [
+        "Low adoption if invite flow has friction"
+      ],
+      "roles": [
+        {
+          "name": "Organizer",
+          "permissions": [
+            "Manage club",
+            "Invite members",
+            "Create meetups"
+          ]
+        },
+        {
+          "name": "Member",
+          "permissions": [
+            "Propose books",
+            "Vote",
+            "RSVP"
+          ]
+        }
+      ],
+      "mvp_scope": [
+        "Clubs and invites",
+        "Book proposals and voting",
+        "Meetups and RSVP"
+      ],
+      "out_of_scope": [
+        "Native mobile apps",
+        "E-book reading"
+      ],
+      "phase2_scope": [
+        "Paid multi-club plan",
+        "Discussion notes per chapter"
+      ],
+      "open_questions": [
+        "Should votes be anonymous?"
+      ],
+      "target_audience": "Volunteer organizers and members of small, recurring book clubs.",
+      "problem_statement": "Book club organizers juggle chat threads and spreadsheets to choose books and schedule meetups, causing missed meetings and low participation.",
+      "value_proposition": "One shared space where a club decides what to read and when to meet in under five minutes.",
+      "functional_requirements": [
+        "Users sign in with email magic link",
+        "Organizer creates a club and shares an invite link",
+        "Members propose books and vote once per round",
+        "Organizer schedules meetups; members RSVP"
+      ],
+      "nonfunctional_requirements": [
+        "Pages load in under 2s on 4G",
+        "WCAG AA contrast",
+        "Daily database backups"
+      ]
+    },
+    "approved_content": {
+      "goals": [
+        {
+          "goal": "Clubs schedule meetups in-app",
+          "metric": "60% of active clubs schedule \u22651 meetup/month"
+        },
+        {
+          "goal": "Members participate in book votes",
+          "metric": "Average 70% member vote participation"
+        }
+      ],
+      "risks": [
+        "Low adoption if invite flow has friction"
+      ],
+      "roles": [
+        {
+          "name": "Organizer",
+          "permissions": [
+            "Manage club",
+            "Invite members",
+            "Create meetups"
+          ]
+        },
+        {
+          "name": "Member",
+          "permissions": [
+            "Propose books",
+            "Vote",
+            "RSVP"
+          ]
+        }
+      ],
+      "mvp_scope": [
+        "Clubs and invites",
+        "Book proposals and voting",
+        "Meetups and RSVP"
+      ],
+      "out_of_scope": [
+        "Native mobile apps",
+        "E-book reading"
+      ],
+      "phase2_scope": [
+        "Paid multi-club plan",
+        "Discussion notes per chapter"
+      ],
+      "open_questions": [
+        "Should votes be anonymous?"
+      ],
+      "target_audience": "Volunteer organizers and members of small, recurring book clubs.",
+      "problem_statement": "Book club organizers juggle chat threads and spreadsheets to choose books and schedule meetups, causing missed meetings and low participation.",
+      "value_proposition": "One shared space where a club decides what to read and when to meet in under five minutes.",
+      "functional_requirements": [
+        "Users sign in with email magic link",
+        "Organizer creates a club and shares an invite link",
+        "Members propose books and vote once per round",
+        "Organizer schedules meetups; members RSVP"
+      ],
+      "nonfunctional_requirements": [
+        "Pages load in under 2s on 4G",
+        "WCAG AA contrast",
+        "Daily database backups"
+      ]
+    }
+  },
+  "features": {
+    "artifact": {
+      "kind": "features",
+      "status": "approved",
+      "current_version": 1,
+      "approved_version": 1,
+      "approved_at": null,
+      "needs_review": false,
+      "review_reason": null,
+      "updated_at": "2026-10-28T09:58:01.591000+00:00"
+    },
+    "content": {
+      "features": [
+        {
+          "id": "1e25046a-9e50-43dd-b0c2-14aec5770b0f",
+          "title": "Clubs and invites",
+          "description": "Organizers create a club and invite members via link.",
+          "priority": "P0",
+          "scope": "mvp",
+          "depends_on": [],
+          "completion_criteria": [
+            "Organizer can create a club",
+            "Invite link adds a member"
+          ],
+          "needs_review": false,
+          "review_reason": null,
+          "stories": [
+            {
+              "id": "26b25304-86d4-49ee-945d-1debf9722701",
+              "as_a": "organizer",
+              "i_want": "to share an invite link",
+              "so_that": "friends can join without accounts setup friction",
+              "acceptance_criteria": [
+                "Link expires after 7 days",
+                "Joining adds Member role"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "abac8cd3-bd77-47ff-8a9c-5d20340ae4a1",
+          "title": "Book proposals and voting",
+          "description": "Members propose books and vote in rounds.",
+          "priority": "P0",
+          "scope": "mvp",
+          "depends_on": [
+            "1e25046a-9e50-43dd-b0c2-14aec5770b0f"
+          ],
+          "completion_criteria": [
+            "One vote per member per round",
+            "Winner is shown when round closes"
+          ],
+          "needs_review": false,
+          "review_reason": null,
+          "stories": [
+            {
+              "id": "45c0676a-f86b-4332-8529-ff7af6dd1142",
+              "as_a": "member",
+              "i_want": "to vote for the next book",
+              "so_that": "the club reads something I like",
+              "acceptance_criteria": [
+                "Vote can be changed until round closes"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "6dfe9432-8f7d-43b7-a463-b006c7cd9521",
+          "title": "Meetups and RSVP",
+          "description": "Schedule meetups and collect RSVPs.",
+          "priority": "P1",
+          "scope": "mvp",
+          "depends_on": [
+            "1e25046a-9e50-43dd-b0c2-14aec5770b0f"
+          ],
+          "completion_criteria": [
+            "Organizer creates meetup with date and place",
+            "Members RSVP yes/no/maybe"
+          ],
+          "needs_review": false,
+          "review_reason": null,
+          "stories": []
+        },
+        {
+          "id": "7d7caff7-b15a-42bb-81c6-81d8f83fabd8",
+          "title": "Discussion notes",
+          "description": "Shared notes per chapter.",
+          "priority": "P2",
+          "scope": "later",
+          "depends_on": [],
+          "completion_criteria": [
+            "Notes are visible to club members only"
+          ],
+          "needs_review": false,
+          "review_reason": null,
+          "stories": []
+        },
+        {
+          "id": "8fb3ad72-ca79-4f9f-b4dd-c9dfd75f3fcd",
+          "title": "Paid multi-club plan",
+          "description": "Subscription for organizers running multiple clubs.",
+          "priority": "P2",
+          "scope": "later",
+          "depends_on": [],
+          "completion_criteria": [],
+          "needs_review": false,
+          "review_reason": null,
+          "stories": []
+        },
+        {
+          "id": "e86cf015-4626-433c-ac35-6374519eebfb",
+          "title": "Native mobile app",
+          "description": "iOS/Android apps.",
+          "priority": "P3",
+          "scope": "out",
+          "depends_on": [],
+          "completion_criteria": [],
+          "needs_review": false,
+          "review_reason": null,
+          "stories": []
+        }
+      ]
+    },
+    "approved_content": {
+      "features": [
+        {
+          "id": "1e25046a-9e50-43dd-b0c2-14aec5770b0f",
+          "scope": "mvp",
+          "title": "Clubs and invites",
+          "stories": [
+            {
+              "id": "26b25304-86d4-49ee-945d-1debf9722701",
+              "as_a": "organizer",
+              "i_want": "to share an invite link",
+              "so_that": "friends can join without accounts setup friction",
+              "acceptance_criteria": [
+                "Link expires after 7 days",
+                "Joining adds Member role"
+              ]
+            }
+          ],
+          "priority": "P0",
+          "depends_on": [],
+          "description": "Organizers create a club and invite members via link.",
+          "needs_review": false,
+          "review_reason": null,
+          "completion_criteria": [
+            "Organizer can create a club",
+            "Invite link adds a member"
+          ]
+        },
+        {
+          "id": "abac8cd3-bd77-47ff-8a9c-5d20340ae4a1",
+          "scope": "mvp",
+          "title": "Book proposals and voting",
+          "stories": [
+            {
+              "id": "45c0676a-f86b-4332-8529-ff7af6dd1142",
+              "as_a": "member",
+              "i_want": "to vote for the next book",
+              "so_that": "the club reads something I like",
+              "acceptance_criteria": [
+                "Vote can be changed until round closes"
+              ]
+            }
+          ],
+          "priority": "P0",
+          "depends_on": [
+            "1e25046a-9e50-43dd-b0c2-14aec5770b0f"
+          ],
+          "description": "Members propose books and vote in rounds.",
+          "needs_review": false,
+          "review_reason": null,
+          "completion_criteria": [
+            "One vote per member per round",
+            "Winner is shown when round closes"
+          ]
+        },
+        {
+          "id": "6dfe9432-8f7d-43b7-a463-b006c7cd9521",
+          "scope": "mvp",
+          "title": "Meetups and RSVP",
+          "stories": [],
+          "priority": "P1",
+          "depends_on": [
+            "1e25046a-9e50-43dd-b0c2-14aec5770b0f"
+          ],
+          "description": "Schedule meetups and collect RSVPs.",
+          "needs_review": false,
+          "review_reason": null,
+          "completion_criteria": [
+            "Organizer creates meetup with date and place",
+            "Members RSVP yes/no/maybe"
+          ]
+        },
+        {
+          "id": "7d7caff7-b15a-42bb-81c6-81d8f83fabd8",
+          "scope": "later",
+          "title": "Discussion notes",
+          "stories": [],
+          "priority": "P2",
+          "depends_on": [],
+          "description": "Shared notes per chapter.",
+          "needs_review": false,
+          "review_reason": null,
+          "completion_criteria": [
+            "Notes are visible to club members only"
+          ]
+        },
+        {
+          "id": "8fb3ad72-ca79-4f9f-b4dd-c9dfd75f3fcd",
+          "scope": "later",
+          "title": "Paid multi-club plan",
+          "stories": [],
+          "priority": "P2",
+          "depends_on": [],
+          "description": "Subscription for organizers running multiple clubs.",
+          "needs_review": false,
+          "review_reason": null,
+          "completion_criteria": []
+        },
+        {
+          "id": "e86cf015-4626-433c-ac35-6374519eebfb",
+          "scope": "out",
+          "title": "Native mobile app",
+          "stories": [],
+          "priority": "P3",
+          "depends_on": [],
+          "description": "iOS/Android apps.",
+          "needs_review": false,
+          "review_reason": null,
+          "completion_criteria": []
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "artifact": {
+      "kind": "architecture",
+      "status": "approved",
+      "current_version": 1,
+      "approved_version": 1,
+      "approved_at": null,
+      "needs_review": false,
+      "review_reason": null,
+      "updated_at": "2026-10-28T09:58:05.949452+00:00"
+    },
+    "content": {
+      "summary": "A single Next.js web app with server routes talks to managed PostgreSQL. Email magic links are sent via a transactional email provider. No cache or workers are needed for MVP scale; add them only if meetup reminders require scheduling.",
+      "nodes": [
+        {
+          "id": "df8b387e-65b1-4ec3-9394-e97b79bbf564",
+          "type": "web_frontend",
+          "name": "Web app",
+          "responsibility": "UI for clubs, votes and meetups",
+          "technology": "Next.js + Tailwind",
+          "rationale": "Preferred TypeScript stack; SSR for fast first load",
+          "config": {},
+          "x": 0.0,
+          "y": 120.0
+        },
+        {
+          "id": "23865c6a-314d-4505-863a-5eaf59a59e5d",
+          "type": "backend",
+          "name": "API routes",
+          "responsibility": "Business logic and validation",
+          "technology": "Next.js route handlers + Zod",
+          "rationale": "Same codebase as UI keeps the stack small",
+          "config": {},
+          "x": 340.0,
+          "y": 120.0
+        },
+        {
+          "id": "c6931656-4eb9-409b-8e87-58bbde1d71c9",
+          "type": "database",
+          "name": "Primary DB",
+          "responsibility": "Stores clubs, books, votes, meetups",
+          "technology": "PostgreSQL (managed)",
+          "rationale": "Relational data with strong constraints",
+          "config": {
+            "backups": "daily"
+          },
+          "x": 680.0,
+          "y": 40.0
+        },
+        {
+          "id": "2e763c14-9e5c-49b4-8a08-decbb425517c",
+          "type": "auth",
+          "name": "Auth",
+          "responsibility": "Magic link sign-in and sessions",
+          "technology": "Auth.js",
+          "rationale": "Matches requested magic-link auth",
+          "config": {},
+          "x": 680.0,
+          "y": 220.0
+        },
+        {
+          "id": "230e39ba-bfb9-4568-8bdf-a1f045f987ba",
+          "type": "email",
+          "name": "Email",
+          "responsibility": "Magic links and invites",
+          "technology": "Resend",
+          "rationale": "Simple API, generous free tier",
+          "config": {},
+          "x": 1020.0,
+          "y": 220.0
+        },
+        {
+          "id": "7adcddef-97c7-444f-8d34-b7d0741b29c3",
+          "type": "hosting",
+          "name": "Hosting",
+          "responsibility": "Build and serve the app",
+          "technology": "Vercel",
+          "rationale": "Zero-config Next.js deploys within budget",
+          "config": {},
+          "x": 340.0,
+          "y": 340.0
+        }
+      ],
+      "edges": [
+        {
+          "id": "5bf173a1-6d00-495e-b8c9-ff55e7231020",
+          "source": "df8b387e-65b1-4ec3-9394-e97b79bbf564",
+          "target": "23865c6a-314d-4505-863a-5eaf59a59e5d",
+          "protocol": "HTTPS REST",
+          "label": "JSON over fetch"
+        },
+        {
+          "id": "b899a2f4-33ad-487a-945e-cfc5baf3c00d",
+          "source": "23865c6a-314d-4505-863a-5eaf59a59e5d",
+          "target": "c6931656-4eb9-409b-8e87-58bbde1d71c9",
+          "protocol": "SQL / database access",
+          "label": "Prisma client"
+        },
+        {
+          "id": "8ad8c0dd-1535-4ff9-a376-67caee5ffdce",
+          "source": "23865c6a-314d-4505-863a-5eaf59a59e5d",
+          "target": "2e763c14-9e5c-49b4-8a08-decbb425517c",
+          "protocol": "SDK",
+          "label": "session checks"
+        },
+        {
+          "id": "1d377eef-3bca-443e-a0b5-570f3676a18e",
+          "source": "2e763c14-9e5c-49b4-8a08-decbb425517c",
+          "target": "230e39ba-bfb9-4568-8bdf-a1f045f987ba",
+          "protocol": "HTTPS REST",
+          "label": "send magic link"
+        },
+        {
+          "id": "6251e592-9fbc-48fc-900c-fff7a11b8083",
+          "source": "7adcddef-97c7-444f-8d34-b7d0741b29c3",
+          "target": "df8b387e-65b1-4ec3-9394-e97b79bbf564",
+          "protocol": "Deploy",
+          "label": "CI on push"
+        }
+      ]
+    },
+    "approved_content": {
+      "edges": [
+        {
+          "id": "5bf173a1-6d00-495e-b8c9-ff55e7231020",
+          "label": "JSON over fetch",
+          "source": "df8b387e-65b1-4ec3-9394-e97b79bbf564",
+          "target": "23865c6a-314d-4505-863a-5eaf59a59e5d",
+          "protocol": "HTTPS REST"
+        },
+        {
+          "id": "b899a2f4-33ad-487a-945e-cfc5baf3c00d",
+          "label": "Prisma client",
+          "source": "23865c6a-314d-4505-863a-5eaf59a59e5d",
+          "target": "c6931656-4eb9-409b-8e87-58bbde1d71c9",
+          "protocol": "SQL / database access"
+        },
+        {
+          "id": "8ad8c0dd-1535-4ff9-a376-67caee5ffdce",
+          "label": "session checks",
+          "source": "23865c6a-314d-4505-863a-5eaf59a59e5d",
+          "target": "2e763c14-9e5c-49b4-8a08-decbb425517c",
+          "protocol": "SDK"
+        },
+        {
+          "id": "1d377eef-3bca-443e-a0b5-570f3676a18e",
+          "label": "send magic link",
+          "source": "2e763c14-9e5c-49b4-8a08-decbb425517c",
+          "target": "230e39ba-bfb9-4568-8bdf-a1f045f987ba",
+          "protocol": "HTTPS REST"
+        },
+        {
+          "id": "6251e592-9fbc-48fc-900c-fff7a11b8083",
+          "label": "CI on push",
+          "source": "7adcddef-97c7-444f-8d34-b7d0741b29c3",
+          "target": "df8b387e-65b1-4ec3-9394-e97b79bbf564",
+          "protocol": "Deploy"
+        }
+      ],
+      "nodes": [
+        {
+          "x": 0.0,
+          "y": 120.0,
+          "id": "df8b387e-65b1-4ec3-9394-e97b79bbf564",
+          "name": "Web app",
+          "type": "web_frontend",
+          "config": {},
+          "rationale": "Preferred TypeScript stack; SSR for fast first load",
+          "technology": "Next.js + Tailwind",
+          "responsibility": "UI for clubs, votes and meetups"
+        },
+        {
+          "x": 340.0,
+          "y": 120.0,
+          "id": "23865c6a-314d-4505-863a-5eaf59a59e5d",
+          "name": "API routes",
+          "type": "backend",
+          "config": {},
+          "rationale": "Same codebase as UI keeps the stack small",
+          "technology": "Next.js route handlers + Zod",
+          "responsibility": "Business logic and validation"
+        },
+        {
+          "x": 680.0,
+          "y": 40.0,
+          "id": "c6931656-4eb9-409b-8e87-58bbde1d71c9",
+          "name": "Primary DB",
+          "type": "database",
+          "config": {
+            "backups": "daily"
+          },
+          "rationale": "Relational data with strong constraints",
+          "technology": "PostgreSQL (managed)",
+          "responsibility": "Stores clubs, books, votes, meetups"
+        },
+        {
+          "x": 680.0,
+          "y": 220.0,
+          "id": "2e763c14-9e5c-49b4-8a08-decbb425517c",
+          "name": "Auth",
+          "type": "auth",
+          "config": {},
+          "rationale": "Matches requested magic-link auth",
+          "technology": "Auth.js",
+          "responsibility": "Magic link sign-in and sessions"
+        },
+        {
+          "x": 1020.0,
+          "y": 220.0,
+          "id": "230e39ba-bfb9-4568-8bdf-a1f045f987ba",
+          "name": "Email",
+          "type": "email",
+          "config": {},
+          "rationale": "Simple API, generous free tier",
+          "technology": "Resend",
+          "responsibility": "Magic links and invites"
+        },
+        {
+          "x": 340.0,
+          "y": 340.0,
+          "id": "7adcddef-97c7-444f-8d34-b7d0741b29c3",
+          "name": "Hosting",
+          "type": "hosting",
+          "config": {},
+          "rationale": "Zero-config Next.js deploys within budget",
+          "technology": "Vercel",
+          "responsibility": "Build and serve the app"
+        }
+      ],
+      "summary": "A single Next.js web app with server routes talks to managed PostgreSQL. Email magic links are sent via a transactional email provider. No cache or workers are needed for MVP scale; add them only if meetup reminders require scheduling."
+    }
+  },
+  "schema": {
+    "artifact": {
+      "kind": "schema",
+      "status": "changed",
+      "current_version": 2,
+      "approved_version": 1,
+      "approved_at": null,
+      "needs_review": false,
+      "review_reason": null,
+      "updated_at": "2026-10-28T10:01:29.283856+00:00"
+    },
+    "content": {
+      "entities": [
+        {
+          "id": "6430a84e-eaa1-499a-88fb-de60187fd40e",
+          "name": "users",
+          "purpose": "People who sign in.",
+          "timestamps": true,
+          "x": 0.0,
+          "y": 0.0,
+          "fields": [
+            {
+              "id": "6b1d2359-6cc3-4692-9945-274d2bf3a1cd",
+              "name": "id",
+              "type": "uuid",
+              "primary_key": true,
+              "nullable": false,
+              "unique": false,
+              "indexed": false,
+              "default": "gen_random_uuid()"
+            },
+            {
+              "id": "27cf7a47-58fb-442a-9366-49e75b4c6975",
+              "name": "email",
+              "type": "varchar(255)",
+              "primary_key": false,
+              "nullable": false,
+              "unique": true,
+              "indexed": false,
+              "default": null
+            },
+            {
+              "id": "bab025f7-a75b-405b-8dc7-83796bd429ff",
+              "name": "display_name",
+              "type": "varchar(120)",
+              "primary_key": false,
+              "nullable": false,
+              "unique": false,
+              "indexed": false,
+              "default": null
+            }
+          ]
+        },
+        {
+          "id": "584733e4-041d-4e20-917d-712f2f99b7d1",
+          "name": "clubs",
+          "purpose": "A book club with an organizer.",
+          "timestamps": true,
+          "x": 360.0,
+          "y": 0.0,
+          "fields": [
+            {
+              "id": "36844df4-d2d7-4558-97ba-8c0c820c2529",
+              "name": "id",
+              "type": "uuid",
+              "primary_key": true,
+              "nullable": false,
+              "unique": false,
+              "indexed": false,
+              "default": "gen_random_uuid()"
+            },
+            {
+              "id": "b4c05fb2-29a1-4da8-88a3-9a99cff402d0",
+              "name": "name",
+              "type": "varchar(120)",
+              "primary_key": false,
+              "nullable": false,
+              "unique": false,
+              "indexed": false,
+              "default": null
+            },
+            {
+              "id": "0ff142f6-dc7b-456a-949b-cfced2298d87",
+              "name": "organizer_id",
+              "type": "uuid",
+              "primary_key": false,
+              "nullable": false,
+              "unique": false,
+              "indexed": true,
+              "default": null
+            }
+          ]
+        },
+        {
+          "id": "1a2b34c6-07db-4551-a449-afbb528447a2",
+          "name": "club_members",
+          "purpose": "Membership of users in clubs with a role.",
+          "timestamps": true,
+          "x": 360.0,
+          "y": 300.0,
+          "fields": [
+            {
+              "id": "dad0c25b-101b-47ee-ba38-2f323e448225",
+              "name": "id",
+              "type": "uuid",
+              "primary_key": true,
+              "nullable": false,
+              "unique": false,
+              "indexed": false,
+              "default": "gen_random_uuid()"
+            },
+            {
+              "id": "c58ad21b-4e5b-4412-8445-4b2d504d5034",
+              "name": "club_id",
+              "type": "uuid",
+              "primary_key": false,
+              "nullable": false,
+              "unique": false,
+              "indexed": true,
+              "default": null
+            },
+            {
+              "id": "a7332868-bec4-4fc0-ab95-7acd1880da54",
+              "name": "user_id",
+              "type": "uuid",
+              "primary_key": false,
+              "nullable": false,
+              "unique": false,
+              "indexed": true,
+              "default": null
+            },
+            {
+              "id": "9f0b2da8-c546-41e2-8800-9c031a61d7aa",
+              "name": "role",
+              "type": "varchar(20)",
+              "primary_key": false,
+              "nullable": false,
+              "unique": false,
+              "indexed": false,
+              "default": "'member'"
+            }
+          ]
+        },
+        {
+          "id": "5843c31c-db39-4b75-9f10-2e069226f69c",
+          "name": "book_proposals",
+          "purpose": "Books proposed for a voting round.",
+          "timestamps": true,
+          "x": 720.0,
+          "y": 0.0,
+          "fields": [
+            {
+              "id": "82427707-2f13-4f2c-ba46-993d65dd097a",
+              "name": "id",
+              "type": "uuid",
+              "primary_key": true,
+              "nullable": false,
+              "unique": false,
+              "indexed": false,
+              "default": "gen_random_uuid()"
+            },
+            {
+              "id": "8679ea12-7b2a-47d4-b516-91974694ecf7",
+              "name": "club_id",
+              "type": "uuid",
+              "primary_key": false,
+              "nullable": false,
+              "unique": false,
+              "indexed": true,
+              "default": null
+            },
+            {
+              "id": "d3df616b-78d1-4e60-ba80-a7dcded9e4e3",
+              "name": "title",
+              "type": "varchar(255)",
+              "primary_key": false,
+              "nullable": false,
+              "unique": false,
+              "indexed": false,
+              "default": null
+            },
+            {
+              "id": "8a8d79d6-6920-4fb2-a0b1-c0970ea8aee1",
+              "name": "votes",
+              "type": "integer",
+              "primary_key": false,
+              "nullable": false,
+              "unique": false,
+              "indexed": false,
+              "default": "0"
+            }
+          ]
+        },
+        {
+          "id": "56a2bdb2-6922-41dd-b5aa-df12f472821d",
+          "name": "meetups",
+          "purpose": "Scheduled club meetings.",
+          "timestamps": true,
+          "x": 720.0,
+          "y": 300.0,
+          "fields": [
+            {
+              "id": "fff6c1c6-c505-4e4f-b7ac-ea47bc001ef1",
+              "name": "id",
+              "type": "uuid",
+              "primary_key": true,
+              "nullable": false,
+              "unique": false,
+              "indexed": false,
+              "default": "gen_random_uuid()"
+            },
+            {
+              "id": "92b4ca15-e3a4-4a2a-a6e9-179aa3a30de7",
+              "name": "club_id",
+              "type": "uuid",
+              "primary_key": false,
+              "nullable": false,
+              "unique": false,
+              "indexed": true,
+              "default": null
+            },
+            {
+              "id": "7129e455-56f3-45da-93e2-7f04074594d1",
+              "name": "starts_at",
+              "type": "timestamptz",
+              "primary_key": false,
+              "nullable": false,
+              "unique": false,
+              "indexed": true,
+              "default": null
+            },
+            {
+              "id": "f66b0999-4140-4734-a9cc-2c6e681f2b93",
+              "name": "location",
+              "type": "text",
+              "primary_key": false,
+              "nullable": true,
+              "unique": false,
+              "indexed": false,
+              "default": null
+            }
+          ]
+        }
+      ],
+      "relationships": [
+        {
+          "id": "da4b9647-8e15-488e-aeac-7b1550b65ed2",
+          "source_entity": "584733e4-041d-4e20-917d-712f2f99b7d1",
+          "source_field": "0ff142f6-dc7b-456a-949b-cfced2298d87",
+          "target_entity": "6430a84e-eaa1-499a-88fb-de60187fd40e",
+          "target_field": "6b1d2359-6cc3-4692-9945-274d2bf3a1cd",
+          "kind": "one_to_many",
+          "on_delete": "RESTRICT"
+        },
+        {
+          "id": "ec1e1da4-37d7-4776-a782-ced08015876f",
+          "source_entity": "1a2b34c6-07db-4551-a449-afbb528447a2",
+          "source_field": "c58ad21b-4e5b-4412-8445-4b2d504d5034",
+          "target_entity": "584733e4-041d-4e20-917d-712f2f99b7d1",
+          "target_field": "36844df4-d2d7-4558-97ba-8c0c820c2529",
+          "kind": "one_to_many",
+          "on_delete": "RESTRICT"
+        },
+        {
+          "id": "d34e7a29-59fe-4652-9b3c-bb85d08a198f",
+          "source_entity": "1a2b34c6-07db-4551-a449-afbb528447a2",
+          "source_field": "a7332868-bec4-4fc0-ab95-7acd1880da54",
+          "target_entity": "6430a84e-eaa1-499a-88fb-de60187fd40e",
+          "target_field": "6b1d2359-6cc3-4692-9945-274d2bf3a1cd",
+          "kind": "one_to_many",
+          "on_delete": "CASCADE"
+        },
+        {
+          "id": "f5400c15-60df-4789-a01e-b58c50257362",
+          "source_entity": "5843c31c-db39-4b75-9f10-2e069226f69c",
+          "source_field": "8679ea12-7b2a-47d4-b516-91974694ecf7",
+          "target_entity": "584733e4-041d-4e20-917d-712f2f99b7d1",
+          "target_field": "36844df4-d2d7-4558-97ba-8c0c820c2529",
+          "kind": "one_to_many",
+          "on_delete": "CASCADE"
+        },
+        {
+          "id": "43245ede-7e5d-42a4-a2a3-4a0f8ed3dad4",
+          "source_entity": "56a2bdb2-6922-41dd-b5aa-df12f472821d",
+          "source_field": "92b4ca15-e3a4-4a2a-a6e9-179aa3a30de7",
+          "target_entity": "584733e4-041d-4e20-917d-712f2f99b7d1",
+          "target_field": "36844df4-d2d7-4558-97ba-8c0c820c2529",
+          "kind": "one_to_many",
+          "on_delete": "CASCADE"
+        }
+      ]
+    },
+    "approved_content": {
+      "entities": [
+        {
+          "x": 0.0,
+          "y": 0.0,
+          "id": "6430a84e-eaa1-499a-88fb-de60187fd40e",
+          "name": "users",
+          "fields": [
+            {
+              "id": "6b1d2359-6cc3-4692-9945-274d2bf3a1cd",
+              "name": "id",
+              "type": "uuid",
+              "unique": false,
+              "default": "gen_random_uuid()",
+              "indexed": false,
+              "nullable": false,
+              "primary_key": true
+            },
+            {
+              "id": "27cf7a47-58fb-442a-9366-49e75b4c6975",
+              "name": "email",
+              "type": "varchar(255)",
+              "unique": true,
+              "default": null,
+              "indexed": false,
+              "nullable": false,
+              "primary_key": false
+            },
+            {
+              "id": "bab025f7-a75b-405b-8dc7-83796bd429ff",
+              "name": "display_name",
+              "type": "varchar(120)",
+              "unique": false,
+              "default": null,
+              "indexed": false,
+              "nullable": false,
+              "primary_key": false
+            }
+          ],
+          "purpose": "People who sign in.",
+          "timestamps": true
+        },
+        {
+          "x": 360.0,
+          "y": 0.0,
+          "id": "584733e4-041d-4e20-917d-712f2f99b7d1",
+          "name": "clubs",
+          "fields": [
+            {
+              "id": "36844df4-d2d7-4558-97ba-8c0c820c2529",
+              "name": "id",
+              "type": "uuid",
+              "unique": false,
+              "default": "gen_random_uuid()",
+              "indexed": false,
+              "nullable": false,
+              "primary_key": true
+            },
+            {
+              "id": "b4c05fb2-29a1-4da8-88a3-9a99cff402d0",
+              "name": "name",
+              "type": "varchar(120)",
+              "unique": false,
+              "default": null,
+              "indexed": false,
+              "nullable": false,
+              "primary_key": false
+            },
+            {
+              "id": "0ff142f6-dc7b-456a-949b-cfced2298d87",
+              "name": "organizer_id",
+              "type": "uuid",
+              "unique": false,
+              "default": null,
+              "indexed": true,
+              "nullable": false,
+              "primary_key": false
+            }
+          ],
+          "purpose": "A book club with an organizer.",
+          "timestamps": true
+        },
+        {
+          "x": 360.0,
+          "y": 300.0,
+          "id": "1a2b34c6-07db-4551-a449-afbb528447a2",
+          "name": "club_members",
+          "fields": [
+            {
+              "id": "dad0c25b-101b-47ee-ba38-2f323e448225",
+              "name": "id",
+              "type": "uuid",
+              "unique": false,
+              "default": "gen_random_uuid()",
+              "indexed": false,
+              "nullable": false,
+              "primary_key": true
+            },
+            {
+              "id": "c58ad21b-4e5b-4412-8445-4b2d504d5034",
+              "name": "club_id",
+              "type": "uuid",
+              "unique": false,
+              "default": null,
+              "indexed": true,
+              "nullable": false,
+              "primary_key": false
+            },
+            {
+              "id": "a7332868-bec4-4fc0-ab95-7acd1880da54",
+              "name": "user_id",
+              "type": "uuid",
+              "unique": false,
+              "default": null,
+              "indexed": true,
+              "nullable": false,
+              "primary_key": false
+            },
+            {
+              "id": "9f0b2da8-c546-41e2-8800-9c031a61d7aa",
+              "name": "role",
+              "type": "varchar(20)",
+              "unique": false,
+              "default": "'member'",
+              "indexed": false,
+              "nullable": false,
+              "primary_key": false
+            }
+          ],
+          "purpose": "Membership of users in clubs with a role.",
+          "timestamps": true
+        },
+        {
+          "x": 720.0,
+          "y": 0.0,
+          "id": "5843c31c-db39-4b75-9f10-2e069226f69c",
+          "name": "book_proposals",
+          "fields": [
+            {
+              "id": "82427707-2f13-4f2c-ba46-993d65dd097a",
+              "name": "id",
+              "type": "uuid",
+              "unique": false,
+              "default": "gen_random_uuid()",
+              "indexed": false,
+              "nullable": false,
+              "primary_key": true
+            },
+            {
+              "id": "8679ea12-7b2a-47d4-b516-91974694ecf7",
+              "name": "club_id",
+              "type": "uuid",
+              "unique": false,
+              "default": null,
+              "indexed": true,
+              "nullable": false,
+              "primary_key": false
+            },
+            {
+              "id": "d3df616b-78d1-4e60-ba80-a7dcded9e4e3",
+              "name": "title",
+              "type": "varchar(255)",
+              "unique": false,
+              "default": null,
+              "indexed": false,
+              "nullable": false,
+              "primary_key": false
+            },
+            {
+              "id": "8a8d79d6-6920-4fb2-a0b1-c0970ea8aee1",
+              "name": "votes",
+              "type": "integer",
+              "unique": false,
+              "default": "0",
+              "indexed": false,
+              "nullable": false,
+              "primary_key": false
+            }
+          ],
+          "purpose": "Books proposed for a voting round.",
+          "timestamps": true
+        },
+        {
+          "x": 720.0,
+          "y": 300.0,
+          "id": "56a2bdb2-6922-41dd-b5aa-df12f472821d",
+          "name": "meetups",
+          "fields": [
+            {
+              "id": "fff6c1c6-c505-4e4f-b7ac-ea47bc001ef1",
+              "name": "id",
+              "type": "uuid",
+              "unique": false,
+              "default": "gen_random_uuid()",
+              "indexed": false,
+              "nullable": false,
+              "primary_key": true
+            },
+            {
+              "id": "92b4ca15-e3a4-4a2a-a6e9-179aa3a30de7",
+              "name": "club_id",
+              "type": "uuid",
+              "unique": false,
+              "default": null,
+              "indexed": true,
+              "nullable": false,
+              "primary_key": false
+            },
+            {
+              "id": "7129e455-56f3-45da-93e2-7f04074594d1",
+              "name": "starts_at",
+              "type": "timestamptz",
+              "unique": false,
+              "default": null,
+              "indexed": true,
+              "nullable": false,
+              "primary_key": false
+            },
+            {
+              "id": "f66b0999-4140-4734-a9cc-2c6e681f2b93",
+              "name": "location",
+              "type": "text",
+              "unique": false,
+              "default": null,
+              "indexed": false,
+              "nullable": true,
+              "primary_key": false
+            }
+          ],
+          "purpose": "Scheduled club meetings.",
+          "timestamps": true
+        }
+      ],
+      "relationships": [
+        {
+          "id": "da4b9647-8e15-488e-aeac-7b1550b65ed2",
+          "kind": "one_to_many",
+          "on_delete": "RESTRICT",
+          "source_field": "0ff142f6-dc7b-456a-949b-cfced2298d87",
+          "target_field": "6b1d2359-6cc3-4692-9945-274d2bf3a1cd",
+          "source_entity": "584733e4-041d-4e20-917d-712f2f99b7d1",
+          "target_entity": "6430a84e-eaa1-499a-88fb-de60187fd40e"
+        },
+        {
+          "id": "ec1e1da4-37d7-4776-a782-ced08015876f",
+          "kind": "one_to_many",
+          "on_delete": "CASCADE",
+          "source_field": "c58ad21b-4e5b-4412-8445-4b2d504d5034",
+          "target_field": "36844df4-d2d7-4558-97ba-8c0c820c2529",
+          "source_entity": "1a2b34c6-07db-4551-a449-afbb528447a2",
+          "target_entity": "584733e4-041d-4e20-917d-712f2f99b7d1"
+        },
+        {
+          "id": "d34e7a29-59fe-4652-9b3c-bb85d08a198f",
+          "kind": "one_to_many",
+          "on_delete": "CASCADE",
+          "source_field": "a7332868-bec4-4fc0-ab95-7acd1880da54",
+          "target_field": "6b1d2359-6cc3-4692-9945-274d2bf3a1cd",
+          "source_entity": "1a2b34c6-07db-4551-a449-afbb528447a2",
+          "target_entity": "6430a84e-eaa1-499a-88fb-de60187fd40e"
+        },
+        {
+          "id": "f5400c15-60df-4789-a01e-b58c50257362",
+          "kind": "one_to_many",
+          "on_delete": "CASCADE",
+          "source_field": "8679ea12-7b2a-47d4-b516-91974694ecf7",
+          "target_field": "36844df4-d2d7-4558-97ba-8c0c820c2529",
+          "source_entity": "5843c31c-db39-4b75-9f10-2e069226f69c",
+          "target_entity": "584733e4-041d-4e20-917d-712f2f99b7d1"
+        },
+        {
+          "id": "43245ede-7e5d-42a4-a2a3-4a0f8ed3dad4",
+          "kind": "one_to_many",
+          "on_delete": "CASCADE",
+          "source_field": "92b4ca15-e3a4-4a2a-a6e9-179aa3a30de7",
+          "target_field": "36844df4-d2d7-4558-97ba-8c0c820c2529",
+          "source_entity": "56a2bdb2-6922-41dd-b5aa-df12f472821d",
+          "target_entity": "584733e4-041d-4e20-917d-712f2f99b7d1"
+        }
+      ]
+    }
+  },
+  "api": {
+    "artifact": {
+      "kind": "api",
+      "status": "draft",
+      "current_version": 2,
+      "approved_version": null,
+      "approved_at": null,
+      "needs_review": true,
+      "review_reason": "Upstream schema changed (v2)",
+      "updated_at": "2026-10-28T10:01:28.431275+00:00"
+    },
+    "content": {
+      "endpoints": [
+        {
+          "id": "459ca4da-8def-4b1b-b984-d11af66686ae",
+          "method": "POST",
+          "path": "/api/clubs",
+          "purpose": "Create a club. The caller becomes its Organizer.",
+          "auth_required": true,
+          "role": "Any signed-in user",
+          "request_schema": "{ \"name\": \"Sci-fi Sundays\" }",
+          "response_schema": "{ \"id\": \"uuid\", \"name\": \"Sci-fi Sundays\", \"organizer_id\": \"uuid\", \"created_at\": \"ISO datetime\" }",
+          "validation": [
+            "name: required, trimmed, 1\u2013120 chars (matches clubs.name varchar(120))",
+            "organizer_id is taken from the session and never from the request body",
+            "Club row and organizer club_members row (role 'organizer') are created in one transaction"
+          ],
+          "errors": [
+            "401 Unauthorized \u2013 no valid session",
+            "422 Unprocessable Entity \u2013 name missing, empty or longer than 120 chars",
+            "429 Too Many Requests \u2013 rate limit exceeded"
+          ],
+          "rate_limit": "10/min per user (assumption)",
+          "entity_ids": [
+            "584733e4-041d-4e20-917d-712f2f99b7d1",
+            "1a2b34c6-07db-4551-a449-afbb528447a2"
+          ],
+          "feature_id": "1e25046a-9e50-43dd-b0c2-14aec5770b0f",
+          "test_cases": [
+            "Signed-in user creates a club and gets 201 with organizer_id equal to their user id",
+            "A club_members row with role 'organizer' is created for the creator",
+            "Name of 121 chars returns 422",
+            "Whitespace-only name returns 422",
+            "Request without a session returns 401",
+            "organizer_id sent in the body is ignored"
+          ],
+          "needs_review": true,
+          "review_reason": "Upstream schema changed (v2)"
+        },
+        {
+          "id": "20120339-8777-4fa5-b221-cade94fa204a",
+          "method": "PUT",
+          "path": "/api/clubs/:id/vote",
+          "purpose": "Cast or change the caller's single vote in the current round.",
+          "auth_required": true,
+          "role": "Member",
+          "request_schema": "{ \"proposal_id\": \"uuid\" }",
+          "response_schema": "{ \"proposal_id\": \"uuid\", \"round_status\": \"open\", \"tallies\": [{ \"proposal_id\": \"uuid\", \"votes\": 4 }] }",
+          "validation": [
+            "Caller must be a member of the club",
+            "proposal_id must belong to this club and to the open round",
+            "Exactly one vote per member per round; a repeat call replaces the previous vote",
+            "Vote changes are rejected after the round closes",
+            "Response contains counts only, never voter identities, until the anonymity question is decided"
+          ],
+          "errors": [
+            "401 Unauthorized \u2013 no valid session",
+            "403 Forbidden \u2013 caller is not a member of the club",
+            "404 Not Found \u2013 club or proposal does not exist in this club",
+            "409 Conflict \u2013 round is closed and the vote can no longer be changed",
+            "422 Unprocessable Entity \u2013 proposal_id missing or not a uuid",
+            "429 Too Many Requests \u2013 rate limit exceeded"
+          ],
+          "rate_limit": "30/min per user",
+          "entity_ids": [
+            "5843c31c-db39-4b75-9f10-2e069226f69c",
+            "1a2b34c6-07db-4551-a449-afbb528447a2"
+          ],
+          "feature_id": "abac8cd3-bd77-47ff-8a9c-5d20340ae4a1",
+          "test_cases": [
+            "First vote increments the chosen proposal's tally by 1",
+            "Changing the vote moves it: old proposal \u22121, new proposal +1, total unchanged",
+            "Repeating the same vote is idempotent",
+            "Vote after the round closes returns 409",
+            "Proposal from another club returns 404",
+            "Non-member gets 403",
+            "Concurrent votes by the same user leave exactly one vote"
+          ],
+          "needs_review": true,
+          "review_reason": "Upstream schema changed (v2)"
+        },
+        {
+          "id": "21b5578b-d144-4630-854f-b29bb8e4cecf",
+          "method": "POST",
+          "path": "/api/clubs/:id/meetups",
+          "purpose": "Organizer schedules a meetup with a date and place.",
+          "auth_required": true,
+          "role": "Organizer",
+          "request_schema": "{ \"starts_at\": \"2025-07-01T18:30:00Z\", \"location\": \"Caf\u00e9 Lumen, 2nd floor\" }",
+          "response_schema": "{ \"id\": \"uuid\", \"club_id\": \"uuid\", \"starts_at\": \"ISO datetime\", \"location\": \"string\" }",
+          "validation": [
+            "Caller must be the club organizer",
+            "starts_at: required ISO 8601 datetime with timezone, in the future",
+            "location: required in the API, 1\u2013500 chars (completion criteria say date and place, but the DB column is nullable; see notes)"
+          ],
+          "errors": [
+            "401 Unauthorized \u2013 no valid session",
+            "403 Forbidden \u2013 caller is not the club organizer",
+            "404 Not Found \u2013 club does not exist",
+            "422 Unprocessable Entity \u2013 starts_at missing, invalid or in the past, or location missing",
+            "429 Too Many Requests \u2013 rate limit exceeded"
+          ],
+          "rate_limit": "10/min per user",
+          "entity_ids": [
+            "56a2bdb2-6922-41dd-b5aa-df12f472821d"
+          ],
+          "feature_id": "6dfe9432-8f7d-43b7-a463-b006c7cd9521",
+          "test_cases": [
+            "Organizer creates a meetup and gets 201",
+            "Member gets 403",
+            "starts_at in the past returns 422",
+            "Missing location returns 422",
+            "starts_at without timezone returns 422"
+          ],
+          "needs_review": false,
+          "review_reason": null
+        },
+        {
+          "id": "8c1f3e2a-5b7d-4e9a-9c41-2f6a7d8e1b03",
+          "method": "POST",
+          "path": "/api/clubs/:id/invites",
+          "purpose": "Organizer generates a shareable invite link that expires after 7 days.",
+          "auth_required": true,
+          "role": "Organizer",
+          "request_schema": "{}",
+          "response_schema": "{ \"invite_url\": \"https://app.example/join/<token>\", \"expires_at\": \"ISO datetime (now + 7 days)\" }",
+          "validation": [
+            ":id must be a valid uuid of an existing club",
+            "Caller must be the organizer of the club",
+            "Expiry is fixed at 7 days and cannot be set by the client",
+            "Token must be unguessable (at least 128 bits of entropy)"
+          ],
+          "errors": [
+            "401 Unauthorized \u2013 no valid session",
+            "403 Forbidden \u2013 caller is not the club organizer",
+            "404 Not Found \u2013 club does not exist",
+            "429 Too Many Requests \u2013 rate limit exceeded"
+          ],
+          "rate_limit": "20/hour per user (assumption)",
+          "entity_ids": [
+            "584733e4-041d-4e20-917d-712f2f99b7d1"
+          ],
+          "feature_id": "1e25046a-9e50-43dd-b0c2-14aec5770b0f",
+          "test_cases": [
+            "Organizer gets 201 with expires_at about 7 days from now",
+            "A plain Member gets 403",
+            "Unknown club id returns 404",
+            "Two calls return different tokens",
+            "Request without a session returns 401"
+          ],
+          "needs_review": true,
+          "review_reason": "Upstream schema changed (v2)"
+        },
+        {
+          "id": "3d9a7b61-0e4c-4f28-a5d2-7c8b9e0f1a24",
+          "method": "POST",
+          "path": "/api/invites/:token/accept",
+          "purpose": "Signed-in user joins a club through an invite link and receives the Member role.",
+          "auth_required": true,
+          "role": "Any signed-in user",
+          "request_schema": "{}",
+          "response_schema": "{ \"club_id\": \"uuid\", \"role\": \"member\" }",
+          "validation": [
+            "Token must exist and not be expired (7 days)",
+            "A user who is already a member gets their existing membership back (idempotent), not a duplicate",
+            "New membership role is always 'member'",
+            "(club_id, user_id) should be unique in club_members (assumption: needs a schema constraint)"
+          ],
+          "errors": [
+            "401 Unauthorized \u2013 no valid session; the client redirects to magic-link sign-in and then retries",
+            "404 Not Found \u2013 unknown invite token",
+            "410 Gone \u2013 invite link has expired",
+            "429 Too Many Requests \u2013 rate limit exceeded"
+          ],
+          "rate_limit": "10/min per user and 30/min per IP to limit token guessing (assumption)",
+          "entity_ids": [
+            "1a2b34c6-07db-4551-a449-afbb528447a2",
+            "584733e4-041d-4e20-917d-712f2f99b7d1"
+          ],
+          "feature_id": "1e25046a-9e50-43dd-b0c2-14aec5770b0f",
+          "test_cases": [
+            "Valid token adds a club_members row with role 'member'",
+            "Token older than 7 days returns 410",
+            "Accepting twice returns 200 and creates no duplicate row",
+            "Random token returns 404",
+            "Unauthenticated request returns 401"
+          ],
+          "needs_review": true,
+          "review_reason": "Upstream schema changed (v2)"
+        },
+        {
+          "id": "6e2b4c8d-1f3a-4b5c-9d7e-8a0b1c2d3e45",
+          "method": "POST",
+          "path": "/api/clubs/:id/proposals",
+          "purpose": "Member proposes a book for the current voting round.",
+          "auth_required": true,
+          "role": "Member",
+          "request_schema": "{ \"title\": \"The Left Hand of Darkness\" }",
+          "response_schema": "{ \"id\": \"uuid\", \"club_id\": \"uuid\", \"title\": \"The Left Hand of Darkness\", \"votes\": 0 }",
+          "validation": [
+            "Caller must be a member of the club (Member or Organizer)",
+            "title: required, trimmed, 1\u2013255 chars",
+            "Proposals are only accepted while a round is open (assumption: depends on the round model, see notes)"
+          ],
+          "errors": [
+            "401 Unauthorized \u2013 no valid session",
+            "403 Forbidden \u2013 caller is not a member of the club",
+            "404 Not Found \u2013 club does not exist",
+            "409 Conflict \u2013 no open voting round",
+            "422 Unprocessable Entity \u2013 title missing or longer than 255 chars",
+            "429 Too Many Requests \u2013 rate limit exceeded"
+          ],
+          "rate_limit": "10/min per user (assumption)",
+          "entity_ids": [
+            "5843c31c-db39-4b75-9f10-2e069226f69c"
+          ],
+          "feature_id": "abac8cd3-bd77-47ff-8a9c-5d20340ae4a1",
+          "test_cases": [
+            "Member creates a proposal with votes = 0",
+            "Non-member gets 403",
+            "Empty title returns 422",
+            "Proposal while no round is open returns 409"
+          ],
+          "needs_review": false,
+          "review_reason": null
+        },
+        {
+          "id": "9a4c2e7f-3b1d-4c6e-8f0a-5d7b9c1e3f62",
+          "method": "PUT",
+          "path": "/api/clubs/:id/meetups/:mid/rsvp",
+          "purpose": "Member sets or updates their RSVP for a meetup.",
+          "auth_required": true,
+          "role": "Member",
+          "request_schema": "{ \"status\": \"yes\" }",
+          "response_schema": "{ \"meetup_id\": \"uuid\", \"status\": \"yes\", \"counts\": { \"yes\": 5, \"no\": 1, \"maybe\": 2 } }",
+          "validation": [
+            "Caller must be a member of the club",
+            "Meetup must belong to the club",
+            "status must be one of yes, no, maybe",
+            "One RSVP per member per meetup; a repeat call overwrites it",
+            "RSVP is rejected after the meetup has started (assumption)"
+          ],
+          "errors": [
+            "401 Unauthorized \u2013 no valid session",
+            "403 Forbidden \u2013 caller is not a member of the club",
+            "404 Not Found \u2013 meetup does not exist in this club",
+            "409 Conflict \u2013 meetup has already started",
+            "422 Unprocessable Entity \u2013 status is not yes, no or maybe",
+            "429 Too Many Requests \u2013 rate limit exceeded"
+          ],
+          "rate_limit": "30/min per user (assumption)",
+          "entity_ids": [
+            "56a2bdb2-6922-41dd-b5aa-df12f472821d",
+            "1a2b34c6-07db-4551-a449-afbb528447a2"
+          ],
+          "feature_id": "6dfe9432-8f7d-43b7-a463-b006c7cd9521",
+          "test_cases": [
+            "Member RSVPs 'yes' and the yes count increases",
+            "Changing 'yes' to 'maybe' updates the counts with no duplicate",
+            "status 'attending' returns 422",
+            "Non-member gets 403",
+            "RSVP to a past meetup returns 409"
+          ],
+          "needs_review": true,
+          "review_reason": "Upstream schema changed (v2)"
+        }
+      ]
+    },
+    "approved_content": null
+  },
+  "roadmap": {
+    "artifact": {
+      "kind": "roadmap",
+      "status": "draft",
+      "current_version": 1,
+      "approved_version": null,
+      "approved_at": null,
+      "needs_review": true,
+      "review_reason": "Upstream schema changed (v2)",
+      "updated_at": "2026-10-28T10:01:28.644370+00:00"
+    },
+    "content": {
+      "tasks": [
+        {
+          "id": "0cb783ee-0be7-4627-8a73-ef8d18f20d0c",
+          "milestone": 1,
+          "title": "Scaffold Next.js app with TypeScript and Tailwind",
+          "description": "",
+          "deliverable": "Running app skeleton in repo",
+          "depends_on": [],
+          "files": [
+            "package.json",
+            "app/layout.tsx"
+          ],
+          "acceptance_criteria": [
+            {
+              "text": "App runs locally",
+              "checked": true
+            },
+            {
+              "text": "Lint passes",
+              "checked": true
+            }
+          ],
+          "tests": [
+            "CI lint job"
+          ],
+          "complexity": "S",
+          "status": "completed",
+          "effective_status": "completed",
+          "feature_id": null,
+          "endpoint_ids": [],
+          "entity_ids": [],
+          "needs_review": false,
+          "review_reason": null
+        },
+        {
+          "id": "d920feab-7ea1-47d9-a625-49eac145e21d",
+          "milestone": 2,
+          "title": "Create Prisma schema and first migration",
+          "description": "",
+          "deliverable": "Migration applied to dev DB",
+          "depends_on": [
+            "0cb783ee-0be7-4627-8a73-ef8d18f20d0c"
+          ],
+          "files": [
+            "prisma/schema.prisma"
+          ],
+          "acceptance_criteria": [
+            {
+              "text": "All MVP tables exist",
+              "checked": false
+            },
+            {
+              "text": "FK indexes created",
+              "checked": false
+            }
+          ],
+          "tests": [
+            "Migration runs on empty DB"
+          ],
+          "complexity": "M",
+          "status": "in_progress",
+          "effective_status": "in_progress",
+          "feature_id": null,
+          "endpoint_ids": [],
+          "entity_ids": [
+            "6430a84e-eaa1-499a-88fb-de60187fd40e",
+            "584733e4-041d-4e20-917d-712f2f99b7d1",
+            "1a2b34c6-07db-4551-a449-afbb528447a2",
+            "5843c31c-db39-4b75-9f10-2e069226f69c",
+            "56a2bdb2-6922-41dd-b5aa-df12f472821d"
+          ],
+          "needs_review": true,
+          "review_reason": "Upstream schema changed (v2)"
+        },
+        {
+          "id": "6d221b6b-ec49-4304-9dea-a51fe975b0d3",
+          "milestone": 3,
+          "title": "Magic-link sign-in",
+          "description": "",
+          "deliverable": "Users can sign in by email",
+          "depends_on": [
+            "d920feab-7ea1-47d9-a625-49eac145e21d"
+          ],
+          "files": [
+            "app/api/auth/*"
+          ],
+          "acceptance_criteria": [
+            {
+              "text": "Link signs user in",
+              "checked": false
+            },
+            {
+              "text": "Expired link rejected",
+              "checked": false
+            }
+          ],
+          "tests": [
+            "E2E sign-in"
+          ],
+          "complexity": "M",
+          "status": "ready",
+          "effective_status": "blocked",
+          "feature_id": null,
+          "endpoint_ids": [],
+          "entity_ids": [],
+          "needs_review": false,
+          "review_reason": null
+        },
+        {
+          "id": "9a696ce4-3fdd-42ce-bb2b-1baa82edad93",
+          "milestone": 4,
+          "title": "Create club endpoint",
+          "description": "",
+          "deliverable": "POST /api/clubs",
+          "depends_on": [
+            "6d221b6b-ec49-4304-9dea-a51fe975b0d3"
+          ],
+          "files": [
+            "app/api/clubs/route.ts"
+          ],
+          "acceptance_criteria": [
+            {
+              "text": "Creates organizer membership",
+              "checked": false
+            }
+          ],
+          "tests": [
+            "Integration test"
+          ],
+          "complexity": "S",
+          "status": "ready",
+          "effective_status": "blocked",
+          "feature_id": "1e25046a-9e50-43dd-b0c2-14aec5770b0f",
+          "endpoint_ids": [
+            "459ca4da-8def-4b1b-b984-d11af66686ae"
+          ],
+          "entity_ids": [
+            "584733e4-041d-4e20-917d-712f2f99b7d1"
+          ],
+          "needs_review": true,
+          "review_reason": "Upstream schema changed (v2)"
+        },
+        {
+          "id": "5183a6c2-a50b-45d7-a79f-afa7a809be02",
+          "milestone": 4,
+          "title": "Voting endpoint with one-vote rule",
+          "description": "",
+          "deliverable": "POST vote endpoint",
+          "depends_on": [
+            "9a696ce4-3fdd-42ce-bb2b-1baa82edad93"
+          ],
+          "files": [
+            "app/api/clubs/[id]/proposals"
+          ],
+          "acceptance_criteria": [
+            {
+              "text": "409 on duplicate vote",
+              "checked": false
+            }
+          ],
+          "tests": [
+            "Integration test"
+          ],
+          "complexity": "M",
+          "status": "ready",
+          "effective_status": "blocked",
+          "feature_id": "abac8cd3-bd77-47ff-8a9c-5d20340ae4a1",
+          "endpoint_ids": [
+            "20120339-8777-4fa5-b221-cade94fa204a"
+          ],
+          "entity_ids": [
+            "5843c31c-db39-4b75-9f10-2e069226f69c"
+          ],
+          "needs_review": true,
+          "review_reason": "Upstream schema changed (v2)"
+        },
+        {
+          "id": "3aff19b2-c927-4c2f-ac41-f4d48e3afb65",
+          "milestone": 5,
+          "title": "Design tokens and base components",
+          "description": "",
+          "deliverable": "Button, input, card primitives",
+          "depends_on": [
+            "0cb783ee-0be7-4627-8a73-ef8d18f20d0c"
+          ],
+          "files": [
+            "components/ui/*"
+          ],
+          "acceptance_criteria": [
+            {
+              "text": "Light and dark tokens",
+              "checked": false
+            }
+          ],
+          "tests": [
+            "Visual check"
+          ],
+          "complexity": "S",
+          "status": "ready",
+          "effective_status": "ready",
+          "feature_id": null,
+          "endpoint_ids": [],
+          "entity_ids": [],
+          "needs_review": false,
+          "review_reason": null
+        },
+        {
+          "id": "59a57eb9-2033-4fbd-993c-2bad6822f451",
+          "milestone": 11,
+          "title": "Deploy to Vercel with env docs",
+          "description": "",
+          "deliverable": "Production URL",
+          "depends_on": [
+            "5183a6c2-a50b-45d7-a79f-afa7a809be02",
+            "3aff19b2-c927-4c2f-ac41-f4d48e3afb65"
+          ],
+          "files": [
+            "README.md"
+          ],
+          "acceptance_criteria": [
+            {
+              "text": "Prod deploy succeeds",
+              "checked": false
+            },
+            {
+              "text": "Env vars documented",
+              "checked": false
+            }
+          ],
+          "tests": [
+            "Smoke test"
+          ],
+          "complexity": "S",
+          "status": "ready",
+          "effective_status": "blocked",
+          "feature_id": null,
+          "endpoint_ids": [],
+          "entity_ids": [],
+          "needs_review": false,
+          "review_reason": null
+        }
+      ]
+    },
+    "approved_content": null
+  }
+};
+
+export const SEED_DECISIONS = [
+  {
+    "id": "fab91280-f855-4982-b41b-fd1b218ba356",
+    "category": "ai",
+    "title": "Accepted AI proposal: Generate API contracts",
+    "decision": "This catalog has 7 endpoints, slightly over the 'about 6' you asked for. That keeps one write endpoint per MVP completion criterion.\n\nSign-in is not listed: Auth.js provides its own magic-link routes.\n\nThe three existing ids were kept.\n- The vote endpoint changed from POST with a 409 on repeat to PUT /api/clubs/:id/vote. A repeat call now changes the vote, because the acceptance criterion says a vote can be changed until the round closes.\n- Error strings now follow the 'code \u2013 reason' format.\n\nThe approved schema is missing some tables. These need decisions, and no ids were invented for them:\n1) No invites table. Endpoints reference clubs only. Use a new invites table or a signed token.\n2) No votes table. book_proposals.votes cannot enforce one vote per member or vote changes. Add a votes table with a unique key on (round, user).\n3) No rounds model. The 'open/closed round' rules and the 409 errors assume one.\n4) No rsvps table.\n5) Add a unique constraint on club_members(club_id, user_i",
+    "reasoning": "",
+    "artifact_kind": "api",
+    "created_at": "2026-10-28T10:01:21.969423+00:00"
+  },
+  {
+    "id": "dc892567-a622-471c-a4f8-f26686ef62ae",
+    "category": "approval",
+    "title": "Sample blueprint created",
+    "decision": "Brief, spec, features, architecture and schema approved",
+    "reasoning": "Seeded so you can explore a filled-in blueprint.",
+    "artifact_kind": null,
+    "created_at": "2026-10-28T09:58:13.808931+00:00"
+  }
+];
