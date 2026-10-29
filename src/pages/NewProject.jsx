@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import ListEditor from "@/components/ListEditor";
 import { http, errMsg } from "@/lib/api";
+import UpgradeDialog from "@/components/UpgradeDialog";
 
 const IDEA_EXAMPLES = [
   {
@@ -112,6 +113,7 @@ export default function NewProject() {
   const [v, setV] = useState({});
   const [skipped, setSkipped] = useState(new Set());
   const [busy, setBusy] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   const step = STEPS[i];
   const last = i === STEPS.length - 1;
@@ -139,7 +141,11 @@ export default function NewProject() {
       toast.success(`Separated "${data.name}" across Database, API, Architecture & .md panels`);
       nav(`/p/${data.id}/database`);
     } catch (err) {
-      toast.error(errMsg(err));
+      if (err?.response?.data?.code === "TIER_LIMIT_REACHED") {
+        setUpgradeOpen(true);
+      } else {
+        toast.error(errMsg(err));
+      }
       setBusy(false);
     }
   };
@@ -152,7 +158,11 @@ export default function NewProject() {
       toast.success("Brief drafted — review it before continuing");
       nav(`/p/${data.id}/brief`);
     } catch (e) {
-      toast.error(errMsg(e));
+      if (e?.response?.data?.code === "TIER_LIMIT_REACHED") {
+        setUpgradeOpen(true);
+      } else {
+        toast.error(errMsg(e));
+      }
       setBusy(false);
     }
   };
@@ -335,6 +345,7 @@ export default function NewProject() {
           </div>
         </div>
       )}
+      <UpgradeDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} />
     </div>
   );
 }

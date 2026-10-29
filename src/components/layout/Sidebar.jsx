@@ -2,6 +2,7 @@ import { NavLink, useParams } from "react-router-dom";
 import {
   LayoutDashboard, FolderKanban, Plus, Compass, FileText, ListChecks, Route, PenTool, Layers, Network,
   Database, Braces, ShieldCheck, Map, FlaskConical, Rocket, ScrollText, Settings, FileSignature, FolderCode,
+  CreditCard,
 } from "lucide-react";
 import { useProject } from "@/context/ProjectContext";
 import { cn } from "@/lib/utils";
@@ -53,6 +54,7 @@ export default function Sidebar({ onNavigate }) {
         <NavLink to="/dashboard" className={linkCls} data-testid="nav-dashboard"><LayoutDashboard className="h-4 w-4" />Dashboard</NavLink>
         <NavLink to="/projects" end className={linkCls} data-testid="nav-projects"><FolderKanban className="h-4 w-4" />Projects</NavLink>
         <NavLink to="/projects/new" className={linkCls} data-testid="nav-new-project"><Plus className="h-4 w-4" />New Project</NavLink>
+        <NavLink to="/billing" className={linkCls} data-testid="nav-billing"><CreditCard className="h-4 w-4" />Billing & Plans</NavLink>
       </div>
       {pid && PROJECT_NAV.map((g) => (
         <div key={g.group} className="space-y-0.5">

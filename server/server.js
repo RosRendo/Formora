@@ -15,6 +15,12 @@ import {
   validateSchema,
 } from "./generator.js";
 import { runArchitectChat, normalizeModuleUpdates } from "./aiArchitect.js";
+import {
+  PLANS,
+  verifyLemonSqueezySignature,
+  createCheckoutSession,
+  handleLemonSqueezyWebhookEvent,
+} from "./billing.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,7 +28,14 @@ const DB_FILE = path.join(__dirname, "db.json");
 const JWT_SECRET = process.env.JWT_SECRET || "formora-super-secret-key-2026";
 
 const app = express();
-app.use(express.json({ limit: "10mb" }));
+app.use(
+  express.json({
+    limit: "10mb",
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 app.use(cookieParser());
 app.use(cors({ origin: true, credentials: true }));
 
@@ -36,6 +49,12 @@ function loadDb() {
       parsed.artifact_versions = parsed.artifact_versions || {};
       parsed.decisions = parsed.decisions || {};
       parsed.ai_jobs = parsed.ai_jobs || {};
+      parsed.processed_webhooks = parsed.processed_webhooks || [];
+      parsed.subscriptions = parsed.subscriptions || {};
+      parsed.transactions = parsed.transactions || [];
+      for (const u of parsed.users || []) {
+        if (!u.plan) u.plan = "free";
+      }
       return parsed;
     } catch (e) {
       console.error("Failed to parse db.json, creating fresh store", e);
@@ -85,6 +104,9 @@ function loadDb() {
     },
     chats: {},
     module_docs: {},
+    processed_webhooks: [],
+    subscriptions: {},
+    transactions: [],
   };
 
   fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2));
@@ -384,6 +406,8 @@ function authRequired(req, res, next) {
     const decoded = jwt.verify(token, JWT_SECRET);
     const user = DB.users.find((u) => u.id === decoded.sub);
     if (!user) return res.status(401).json({ detail: "User not found" });
+    user.plan = user.plan || "free";
+    user.subscription = DB.subscriptions?.[user.id] || user.subscription || null;
     req.user = user;
     next();
   } catch {
@@ -412,6 +436,8 @@ app.post("/api/auth/login", (req, res) => {
 
   setAuthCookies(res, user);
   const { password_hash, password: _, ...safeUser } = user;
+  safeUser.plan = user.plan || "free";
+  safeUser.subscription = DB.subscriptions?.[user.id] || user.subscription || null;
   res.json(safeUser);
 });
 
@@ -430,6 +456,8 @@ app.post("/api/auth/register", (req, res) => {
     email,
     name,
     picture: null,
+    plan: "free",
+    subscription: null,
     auth_provider: "password",
     password_hash: bcrypt.hashSync(password, 10),
     created_at: new Date().toISOString(),
@@ -450,6 +478,8 @@ app.get("/api/auth/me", (req, res) => {
     const user = DB.users.find((u) => u.id === decoded.sub);
     if (!user) return res.status(401).json({ detail: "User not found" });
     const { password_hash, ...safeUser } = user;
+    safeUser.plan = user.plan || "free";
+    safeUser.subscription = DB.subscriptions?.[user.id] || user.subscription || null;
     res.json(safeUser);
   } catch {
     return res.status(401).json({ detail: "Session expired" });
@@ -483,7 +513,7 @@ app.post("/api/auth/refresh", (req, res) => {
 app.get("/api/projects", authRequired, (req, res) => {
   const includeArchived = req.query.include_archived === "true";
   const list = DB.projects
-    .filter((p) => includeArchived || p.status !== "archived")
+    .filter((p) => (p.user_id === req.user.id || p.is_sample || !p.user_id) && (includeArchived || p.status !== "archived"))
     .map((p) => {
       const arts = DB.artifacts[p.id] || {};
       const tasks = arts.roadmap?.content?.tasks || [];
@@ -509,6 +539,25 @@ app.post("/api/projects", authRequired, async (req, res) => {
   const { name, description, answers, idea_prompt, llm_config } = req.body || {};
   if (!name && !idea_prompt) {
     return res.status(400).json({ detail: "Project name or idea description is required" });
+  }
+
+  // SaaS Multi-tenant Tier Quota Enforcement
+  const userPlan = req.user?.plan || "free";
+  const planConfig = PLANS[userPlan] || PLANS.free;
+  const maxProjects = planConfig.limits.max_active_projects;
+
+  const activeProjects = DB.projects.filter(
+    (p) => p.user_id === req.user.id && p.status !== "archived" && !p.is_sample
+  );
+
+  if (activeProjects.length >= maxProjects) {
+    return res.status(403).json({
+      code: "TIER_LIMIT_REACHED",
+      detail: `Your ${planConfig.name} plan is limited to ${maxProjects} active blueprint${maxProjects === 1 ? "" : "s"}. Upgrade to Pro for unlimited projects, team collaboration, and automated exports.`,
+      current: activeProjects.length,
+      limit: maxProjects,
+      plan: userPlan,
+    });
   }
 
   const pid = `proj-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -1208,6 +1257,112 @@ app.post("/api/projects/:pid/ai/jobs/:id/discard", authRequired, (req, res) => {
     saveDb();
   }
   res.json({ ok: true });
+});
+
+// ========================
+// BILLING & SAAS ENDPOINTS
+// ========================
+
+app.get("/api/billing/plans", (req, res) => {
+  res.json({
+    plans: PLANS,
+    active_provider: process.env.LEMONSQUEEZY_API_KEY ? "lemonsqueezy" : "simulation",
+  });
+});
+
+app.get("/api/billing/subscription", authRequired, (req, res) => {
+  const userPlan = req.user.plan || "free";
+  const planConfig = PLANS[userPlan] || PLANS.free;
+  const activeProjects = DB.projects.filter(
+    (p) => p.user_id === req.user.id && p.status !== "archived" && !p.is_sample
+  );
+  const userTransactions = (DB.transactions || []).filter((tx) => tx.user_id === req.user.id);
+
+  res.json({
+    plan: userPlan,
+    plan_name: planConfig.name,
+    subscription: req.user.subscription || null,
+    usage: {
+      active_projects: activeProjects.length,
+      max_projects: planConfig.limits.max_active_projects,
+    },
+    limits: planConfig.limits,
+    transactions: userTransactions,
+    simulation_mode: !process.env.LEMONSQUEEZY_API_KEY,
+  });
+});
+
+app.post("/api/billing/checkout", authRequired, async (req, res) => {
+  try {
+    const { plan, interval, redirect_url } = req.body || {};
+    const session = await createCheckoutSession({
+      user: req.user,
+      planId: plan || "pro",
+      interval: interval || "monthly",
+      redirectUrl: redirect_url,
+    });
+    res.json(session);
+  } catch (err) {
+    res.status(400).json({ detail: err.message || "Failed to create checkout session" });
+  }
+});
+
+app.post("/api/billing/webhook/lemonsqueezy", async (req, res) => {
+  const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
+  const signature = req.headers["x-signature"];
+
+  if (secret) {
+    const raw = req.rawBody || JSON.stringify(req.body);
+    const isValid = verifyLemonSqueezySignature(raw, signature, secret);
+    if (!isValid) {
+      console.warn("Invalid Lemon Squeezy webhook signature received");
+      return res.status(400).json({ error: "Invalid webhook signature" });
+    }
+  }
+
+  try {
+    const result = handleLemonSqueezyWebhookEvent(DB, req.body, saveDb);
+    res.json({ received: true, ...result });
+  } catch (err) {
+    console.error("Error processing Lemon Squeezy webhook:", err);
+    res.status(500).json({ error: "Internal webhook processing error" });
+  }
+});
+
+app.post("/api/billing/dev-simulate-webhook", authRequired, (req, res) => {
+  const { event_name = "subscription_created", plan = "pro", interval = "monthly" } = req.body || {};
+  const mockPayload = {
+    meta: {
+      event_name,
+      event_id: `sim_evt_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      custom_data: {
+        user_id: req.user.id,
+        plan,
+        interval,
+      },
+    },
+    data: {
+      id: `sim_sub_${Date.now()}`,
+      attributes: {
+        customer_id: `sim_cust_${req.user.id}`,
+        user_email: req.user.email,
+        status: event_name === "subscription_cancelled" ? "cancelled" : "active",
+        total: interval === "yearly" ? 19000 : 1900,
+        currency: "USD",
+        renews_at: new Date(Date.now() + (interval === "yearly" ? 365 : 30) * 86400000).toISOString(),
+      },
+    },
+  };
+
+  const result = handleLemonSqueezyWebhookEvent(DB, mockPayload, saveDb);
+  res.json({ success: true, simulated_event: event_name, result });
+});
+
+app.get("/api/billing/portal", authRequired, (req, res) => {
+  if (req.user.subscription?.customer_id && process.env.LEMONSQUEEZY_API_KEY) {
+    return res.json({ portal_url: "https://app.lemonsqueezy.com/my-orders" });
+  }
+  res.json({ portal_url: "/billing", message: "Manage subscriptions on Formora billing dashboard" });
 });
 
 app.get("/api/health", (req, res) => {

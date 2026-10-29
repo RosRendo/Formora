@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
-import { Moon, Sun, LogOut, Menu, Sparkles, Download, MessageSquareText } from "lucide-react";
+import { Moon, Sun, LogOut, Menu, Sparkles, Download, MessageSquareText, CreditCard, Zap } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -114,6 +114,21 @@ export default function AppShell() {
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} data-testid="theme-toggle-btn" aria-label="Toggle theme">
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
+          <Link
+            to="/billing"
+            className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase transition-all ${
+              user?.plan === "pro"
+                ? "bg-primary text-primary-foreground shadow-xs hover:opacity-90"
+                : user?.plan === "team"
+                ? "bg-violet-600 text-white hover:opacity-90"
+                : "border hairline text-muted-foreground hover:bg-muted"
+            }`}
+            title="Manage Billing & Plans"
+            data-testid="header-plan-badge"
+          >
+            {user?.plan === "pro" || user?.plan === "team" ? <Zap className="h-3 w-3 fill-current" /> : null}
+            <span>{user?.plan || "Free"}</span>
+          </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="h-7 w-7 overflow-hidden rounded-full bg-accent text-[11px] font-semibold text-accent-foreground" data-testid="user-menu-btn">
@@ -122,6 +137,11 @@ export default function AppShell() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel className="font-normal"><div className="text-sm font-medium">{user?.name}</div><div className="text-xs text-muted-foreground truncate">{user?.email}</div></DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => nav("/billing")} data-testid="billing-menu-item">
+                <CreditCard className="h-4 w-4 mr-2" />
+                <span>Billing & Plans</span>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={async () => { await logout(); nav("/login"); }} data-testid="logout-btn"><LogOut className="h-4 w-4 mr-2" />Sign out</DropdownMenuItem>
             </DropdownMenuContent>

@@ -23,6 +23,7 @@ import Roadmap from "@/pages/Roadmap";
 import DecisionLog from "@/pages/DecisionLog";
 import ProjectSettings from "@/pages/ProjectSettings";
 import LaterPhase from "@/pages/LaterPhase";
+import Billing from "@/pages/Billing";
 
 function Protected({ children }) {
   const { user } = useAuth();
@@ -42,6 +43,7 @@ function AppRouter() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/projects" element={<Projects />} />
         <Route path="/projects/new" element={<NewProject />} />
+        <Route path="/billing" element={<Billing />} />
       </Route>
       <Route path="/p/:pid" element={<Protected><ProjectProvider><AppShell /></ProjectProvider></Protected>}>
         <Route index element={<Overview />} />

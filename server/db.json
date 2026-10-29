@@ -6,10 +6,54 @@
       "name": "Demo Founder",
       "password": "Blueprint123!",
       "auth_provider": "password",
-      "password_hash": "$2b$10$F1PMZt3OKejk374xIXL2Deec30Md2Pf610sHu1q2qDhvBSt02/gHu"
+      "password_hash": "$2b$10$F1PMZt3OKejk374xIXL2Deec30Md2Pf610sHu1q2qDhvBSt02/gHu",
+      "plan": "pro",
+      "subscription": {
+        "subscription_id": "sim_sub_1793295368235",
+        "customer_id": "sim_cust_57a6bb81-a6e6-4b67-bb2e-0017a50bf26a",
+        "plan": "pro",
+        "interval": "yearly",
+        "status": "active",
+        "current_period_end": "2027-10-29T17:36:08.235Z",
+        "renews_at": "2027-10-29T17:36:08.235Z",
+        "cancel_at_period_end": false,
+        "created_at": "2026-10-29T17:36:08.235Z",
+        "updated_at": "2026-10-29T17:36:08.235Z"
+      }
     }
   ],
   "projects": [
+    {
+      "id": "proj-1793295368243-duo3d",
+      "user_id": "57a6bb81-a6e6-4b67-bb2e-0017a50bf26a",
+      "name": "SaaS Pro Test Project 1793295368243",
+      "description": "Testing multi-tenant billing",
+      "status": "active",
+      "is_sample": false,
+      "archived_at": null,
+      "created_at": "2026-10-29T17:36:08.243Z",
+      "updated_at": "2026-10-29T17:36:08.243Z",
+      "approved": 0,
+      "artifacts": 7,
+      "needs_review": 0,
+      "tasks_total": 3,
+      "tasks_done": 0,
+      "brief_status": "draft",
+      "task_counts": {
+        "ready": 3,
+        "in_progress": 0,
+        "completed": 0,
+        "blocked": 0
+      },
+      "flagged": {
+        "endpoints": [],
+        "tasks": []
+      },
+      "ai_usage": {
+        "jobs": 0,
+        "chars": 0
+      }
+    },
     {
       "id": "proj-1793209503582-oqhqq",
       "user_id": "57a6bb81-a6e6-4b67-bb2e-0017a50bf26a",
@@ -3635,6 +3679,593 @@
           ]
         }
       }
+    },
+    "proj-1793295368243-duo3d": {
+      "brief": {
+        "artifact": {
+          "id": "art-proj-1793295368243-duo3d-brief",
+          "project_id": "proj-1793295368243-duo3d",
+          "kind": "brief",
+          "current_version": 1,
+          "approved_version": null,
+          "approved_at": null,
+          "status": "draft",
+          "needs_review": false,
+          "review_reason": null,
+          "updated_at": "2026-10-29T17:36:08.245Z"
+        },
+        "content": {
+          "name": "SaaS Pro Test Project 1793295368243",
+          "description": "Testing multi-tenant billing",
+          "problems": "",
+          "target_users": "",
+          "platform": "Web (responsive)",
+          "languages": "TypeScript",
+          "database": "PostgreSQL",
+          "auth": "Email magic link",
+          "payments": "Not in MVP",
+          "hosting": "Vercel + managed Postgres",
+          "budget": "Under $100/mo",
+          "deadline": "6 weeks",
+          "available_time": "15 hours/week",
+          "scale": "Up to 5,000 users",
+          "business_model": "SaaS subscription",
+          "mvp_features": [
+            "User authentication & workspace setup",
+            "Core workflow execution",
+            "Dashboard and exports"
+          ],
+          "assumptions": [
+            {
+              "field": "auth",
+              "assumption": "MVP relies on magic links to reduce signup friction."
+            }
+          ]
+        },
+        "approved_content": null
+      },
+      "spec": {
+        "artifact": {
+          "id": "art-proj-1793295368243-duo3d-spec",
+          "project_id": "proj-1793295368243-duo3d",
+          "kind": "spec",
+          "current_version": 1,
+          "approved_version": null,
+          "approved_at": null,
+          "status": "draft",
+          "needs_review": false,
+          "review_reason": null,
+          "updated_at": "2026-10-29T17:36:08.245Z"
+        },
+        "content": {
+          "problem_statement": "Users face friction coordinating the workflow across scattered tools.",
+          "target_audience": "Founders, operators, and team members",
+          "value_proposition": "Testing multi-tenant billing",
+          "goals": [
+            {
+              "goal": "Deliver core MVP workflow",
+              "metric": ">= 60% onboarding completion in week 1"
+            }
+          ],
+          "roles": [
+            {
+              "name": "Admin",
+              "permissions": [
+                "Configure workspace",
+                "Invite members",
+                "Export data"
+              ]
+            },
+            {
+              "name": "Member",
+              "permissions": [
+                "Create and update items",
+                "Collaborate on workflows"
+              ]
+            }
+          ],
+          "functional_requirements": [
+            "Email magic-link sign in",
+            "Create and manage core records",
+            "Structured exports"
+          ],
+          "nonfunctional_requirements": [
+            "P95 API latency under 200ms",
+            "Daily PostgreSQL backups"
+          ],
+          "mvp_scope": [
+            "Authentication",
+            "Core CRUD",
+            "Exports"
+          ],
+          "phase2_scope": [
+            "Analytics & third-party webhooks"
+          ],
+          "out_of_scope": [
+            "On-premise enterprise SSO in MVP"
+          ],
+          "risks": [
+            "Scope creep delaying initial launch"
+          ],
+          "open_questions": [
+            "Should guest read-only links be enabled in MVP?"
+          ]
+        },
+        "approved_content": null
+      },
+      "features": {
+        "artifact": {
+          "id": "art-proj-1793295368243-duo3d-features",
+          "project_id": "proj-1793295368243-duo3d",
+          "kind": "features",
+          "current_version": 1,
+          "approved_version": null,
+          "approved_at": null,
+          "status": "draft",
+          "needs_review": false,
+          "review_reason": null,
+          "updated_at": "2026-10-29T17:36:08.245Z"
+        },
+        "content": {
+          "features": [
+            {
+              "id": "feat-proj-1793295368243-duo3d-1",
+              "title": "Authentication & Workspace Access",
+              "description": "Passwordless or credential sign-in with role permissions.",
+              "priority": "P0",
+              "scope": "mvp",
+              "depends_on": [],
+              "completion_criteria": [
+                "Users sign in and maintain sessions"
+              ],
+              "needs_review": false,
+              "review_reason": null,
+              "stories": [
+                {
+                  "id": "24743c96-a191-4f23-8877-2743c5389de6",
+                  "as_a": "user",
+                  "i_want": "to sign in smoothly",
+                  "so_that": "I can access my workspace securely",
+                  "acceptance_criteria": [
+                    "Protected routes require valid session"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "feat-proj-1793295368243-duo3d-2",
+              "title": "Core Resource Management",
+              "description": "Create, filter, and update primary domain records.",
+              "priority": "P0",
+              "scope": "mvp",
+              "depends_on": [
+                "feat-proj-1793295368243-duo3d-1"
+              ],
+              "completion_criteria": [
+                "CRUD operations validated and persisted"
+              ],
+              "needs_review": false,
+              "review_reason": null,
+              "stories": []
+            }
+          ]
+        },
+        "approved_content": null
+      },
+      "architecture": {
+        "artifact": {
+          "id": "art-proj-1793295368243-duo3d-architecture",
+          "project_id": "proj-1793295368243-duo3d",
+          "kind": "architecture",
+          "current_version": 1,
+          "approved_version": null,
+          "approved_at": null,
+          "status": "draft",
+          "needs_review": false,
+          "review_reason": null,
+          "updated_at": "2026-10-29T17:36:08.245Z"
+        },
+        "content": {
+          "summary": "Modular 3-tier web architecture with React SPA, REST API, PostgreSQL, Auth, Hosting, and Monitoring.",
+          "nodes": [
+            {
+              "id": "n-web",
+              "type": "web_frontend",
+              "name": "Web App",
+              "responsibility": "User interface and state",
+              "technology": "React + TypeScript + Tailwind",
+              "rationale": "Fast component iteration",
+              "config": {},
+              "x": 0,
+              "y": 120
+            },
+            {
+              "id": "n-api",
+              "type": "backend",
+              "name": "API Service",
+              "responsibility": "Business logic and REST contracts",
+              "technology": "Node.js + Express",
+              "rationale": "Simple modular monolith",
+              "config": {},
+              "x": 340,
+              "y": 120
+            },
+            {
+              "id": "n-db",
+              "type": "database",
+              "name": "Primary DB",
+              "responsibility": "Relational persistence",
+              "technology": "PostgreSQL",
+              "rationale": "ACID integrity & FK constraints",
+              "config": {},
+              "x": 680,
+              "y": 40
+            },
+            {
+              "id": "n-auth",
+              "type": "auth",
+              "name": "Auth",
+              "responsibility": "Sessions & role verification",
+              "technology": "JWT / Magic Link",
+              "rationale": "Low-friction onboarding",
+              "config": {},
+              "x": 680,
+              "y": 220
+            },
+            {
+              "id": "n-host",
+              "type": "hosting",
+              "name": "Hosting",
+              "responsibility": "Automated builds & deploys",
+              "technology": "Vercel",
+              "rationale": "Zero-config CI/CD",
+              "config": {},
+              "x": 0,
+              "y": 320
+            },
+            {
+              "id": "n-mon",
+              "type": "monitoring",
+              "name": "Monitoring",
+              "responsibility": "Error & latency tracking",
+              "technology": "Sentry",
+              "rationale": "Immediate production visibility",
+              "config": {},
+              "x": 340,
+              "y": 320
+            }
+          ],
+          "edges": [
+            {
+              "id": "8bd2b351-596a-47d4-b23c-435ae1423cee",
+              "source": "n-web",
+              "target": "n-api",
+              "protocol": "HTTPS REST",
+              "label": "JSON API calls"
+            },
+            {
+              "id": "b2003d00-99b5-4992-8c52-a2583542b0e8",
+              "source": "n-api",
+              "target": "n-db",
+              "protocol": "SQL / database access",
+              "label": "Parameterized queries"
+            },
+            {
+              "id": "437e7962-f649-4ec3-bc4d-9ddcf7b6bf9d",
+              "source": "n-api",
+              "target": "n-auth",
+              "protocol": "SDK",
+              "label": "Session checks"
+            },
+            {
+              "id": "6c21bffe-8ac9-4405-a39e-ac431e1324dc",
+              "source": "n-host",
+              "target": "n-web",
+              "protocol": "Deploy",
+              "label": "CI on push"
+            },
+            {
+              "id": "2a1a0162-e7dd-432c-adec-a8c779f71afc",
+              "source": "n-api",
+              "target": "n-mon",
+              "protocol": "SDK",
+              "label": "Error telemetry"
+            }
+          ]
+        },
+        "approved_content": null
+      },
+      "schema": {
+        "artifact": {
+          "id": "art-proj-1793295368243-duo3d-schema",
+          "project_id": "proj-1793295368243-duo3d",
+          "kind": "schema",
+          "current_version": 1,
+          "approved_version": null,
+          "approved_at": null,
+          "status": "draft",
+          "needs_review": false,
+          "review_reason": null,
+          "updated_at": "2026-10-29T17:36:08.245Z"
+        },
+        "content": {
+          "entities": [
+            {
+              "id": "ent-users",
+              "name": "users",
+              "purpose": "Authenticated users.",
+              "timestamps": true,
+              "x": 0,
+              "y": 40,
+              "fields": [
+                {
+                  "id": "f-u1",
+                  "name": "id",
+                  "type": "uuid",
+                  "primary_key": true,
+                  "nullable": false,
+                  "unique": false,
+                  "indexed": false,
+                  "default": "gen_random_uuid()"
+                },
+                {
+                  "id": "f-u2",
+                  "name": "email",
+                  "type": "varchar(255)",
+                  "primary_key": false,
+                  "nullable": false,
+                  "unique": true,
+                  "indexed": false,
+                  "default": null
+                },
+                {
+                  "id": "f-u3",
+                  "name": "name",
+                  "type": "varchar(120)",
+                  "primary_key": false,
+                  "nullable": false,
+                  "unique": false,
+                  "indexed": false,
+                  "default": null
+                }
+              ]
+            },
+            {
+              "id": "ent-items",
+              "name": "items",
+              "purpose": "Primary workspace records.",
+              "timestamps": true,
+              "x": 360,
+              "y": 40,
+              "fields": [
+                {
+                  "id": "f-i1",
+                  "name": "id",
+                  "type": "uuid",
+                  "primary_key": true,
+                  "nullable": false,
+                  "unique": false,
+                  "indexed": false,
+                  "default": "gen_random_uuid()"
+                },
+                {
+                  "id": "f-i2",
+                  "name": "user_id",
+                  "type": "uuid",
+                  "primary_key": false,
+                  "nullable": false,
+                  "unique": false,
+                  "indexed": true,
+                  "default": null
+                },
+                {
+                  "id": "f-i3",
+                  "name": "title",
+                  "type": "varchar(180)",
+                  "primary_key": false,
+                  "nullable": false,
+                  "unique": false,
+                  "indexed": false,
+                  "default": null
+                },
+                {
+                  "id": "f-i4",
+                  "name": "status",
+                  "type": "varchar(40)",
+                  "primary_key": false,
+                  "nullable": false,
+                  "unique": false,
+                  "indexed": false,
+                  "default": "'active'"
+                }
+              ]
+            }
+          ],
+          "relationships": [
+            {
+              "id": "ea62d311-47a1-4298-a444-f0efa1fc81f7",
+              "source_entity": "ent-items",
+              "source_field": "f-i2",
+              "target_entity": "ent-users",
+              "target_field": "f-u1",
+              "kind": "one_to_many",
+              "on_delete": "CASCADE"
+            }
+          ]
+        },
+        "approved_content": null
+      },
+      "api": {
+        "artifact": {
+          "id": "art-proj-1793295368243-duo3d-api",
+          "project_id": "proj-1793295368243-duo3d",
+          "kind": "api",
+          "current_version": 1,
+          "approved_version": null,
+          "approved_at": null,
+          "status": "draft",
+          "needs_review": false,
+          "review_reason": null,
+          "updated_at": "2026-10-29T17:36:08.245Z"
+        },
+        "content": {
+          "endpoints": [
+            {
+              "id": "a642d740-27ed-4f93-b4d8-57a60a95202b",
+              "method": "GET",
+              "path": "/api/items",
+              "purpose": "List items belonging to the signed-in user.",
+              "auth_required": true,
+              "role": "Member",
+              "request_schema": "// ?status=active",
+              "response_schema": "{ \"items\": [{ \"id\": \"uuid\", \"title\": \"Sample\", \"status\": \"active\" }] }",
+              "validation": [
+                "Scoped to caller user_id"
+              ],
+              "errors": [
+                "401 Unauthorized"
+              ],
+              "rate_limit": "60/min",
+              "entity_ids": [
+                "ent-items"
+              ],
+              "feature_id": null,
+              "test_cases": [
+                "Returns 200 with caller's items"
+              ],
+              "needs_review": false,
+              "review_reason": null
+            },
+            {
+              "id": "d342317c-394c-4680-ad1e-8bd6b3570a5e",
+              "method": "POST",
+              "path": "/api/items",
+              "purpose": "Create a new workspace item.",
+              "auth_required": true,
+              "role": "Member",
+              "request_schema": "{ \"title\": \"Launch checklist\" }",
+              "response_schema": "{ \"id\": \"uuid\", \"title\": \"Launch checklist\", \"status\": \"active\" }",
+              "validation": [
+                "title: required, 1..180 chars"
+              ],
+              "errors": [
+                "401 Unauthorized",
+                "422 Unprocessable Entity"
+              ],
+              "rate_limit": "20/min",
+              "entity_ids": [
+                "ent-items"
+              ],
+              "feature_id": null,
+              "test_cases": [
+                "Valid title creates row and returns 201"
+              ],
+              "needs_review": false,
+              "review_reason": null
+            }
+          ]
+        },
+        "approved_content": null
+      },
+      "roadmap": {
+        "artifact": {
+          "id": "art-proj-1793295368243-duo3d-roadmap",
+          "project_id": "proj-1793295368243-duo3d",
+          "kind": "roadmap",
+          "current_version": 1,
+          "approved_version": null,
+          "approved_at": null,
+          "status": "draft",
+          "needs_review": false,
+          "review_reason": null,
+          "updated_at": "2026-10-29T17:36:08.245Z"
+        },
+        "content": {
+          "tasks": [
+            {
+              "id": "33bcec45-a5e9-43a4-9f90-b7d9aa2268d8",
+              "milestone": 1,
+              "title": "Scaffold repository & environment config",
+              "description": "",
+              "deliverable": "Running dev skeleton",
+              "depends_on": [],
+              "files": [
+                "package.json"
+              ],
+              "acceptance_criteria": [
+                {
+                  "text": "App boots locally",
+                  "checked": false
+                }
+              ],
+              "tests": [],
+              "complexity": "S",
+              "status": "ready",
+              "feature_id": null,
+              "endpoint_ids": [],
+              "entity_ids": [],
+              "needs_review": false,
+              "review_reason": null
+            },
+            {
+              "id": "953eebcd-ff52-4bcf-ab6e-a90ce03e250f",
+              "milestone": 2,
+              "title": "Create initial PostgreSQL migration",
+              "description": "",
+              "deliverable": "Applied schema migration",
+              "depends_on": [],
+              "files": [
+                "prisma/schema.prisma"
+              ],
+              "acceptance_criteria": [
+                {
+                  "text": "Tables & FKs created",
+                  "checked": false
+                }
+              ],
+              "tests": [],
+              "complexity": "M",
+              "status": "ready",
+              "feature_id": null,
+              "endpoint_ids": [],
+              "entity_ids": [
+                "ent-users",
+                "ent-items"
+              ],
+              "needs_review": false,
+              "review_reason": null
+            },
+            {
+              "id": "f36bb40c-b3f3-40e4-a11a-1a0534c8a598",
+              "milestone": 4,
+              "title": "Implement items REST endpoints",
+              "description": "",
+              "deliverable": "Tested CRUD endpoints",
+              "depends_on": [],
+              "files": [
+                "src/routes/items.ts"
+              ],
+              "acceptance_criteria": [
+                {
+                  "text": "GET and POST /api/items pass tests",
+                  "checked": false
+                }
+              ],
+              "tests": [],
+              "complexity": "M",
+              "status": "ready",
+              "feature_id": null,
+              "endpoint_ids": [],
+              "entity_ids": [
+                "ent-items"
+              ],
+              "needs_review": false,
+              "review_reason": null
+            }
+          ]
+        },
+        "approved_content": null
+      }
     }
   },
   "artifact_versions": {
@@ -4913,6 +5544,537 @@
           "created_at": "2026-10-28T17:45:03.582Z"
         }
       ]
+    },
+    "proj-1793295368243-duo3d": {
+      "brief": [
+        {
+          "version_number": 1,
+          "content": {
+            "name": "SaaS Pro Test Project 1793295368243",
+            "description": "Testing multi-tenant billing",
+            "problems": "",
+            "target_users": "",
+            "platform": "Web (responsive)",
+            "languages": "TypeScript",
+            "database": "PostgreSQL",
+            "auth": "Email magic link",
+            "payments": "Not in MVP",
+            "hosting": "Vercel + managed Postgres",
+            "budget": "Under $100/mo",
+            "deadline": "6 weeks",
+            "available_time": "15 hours/week",
+            "scale": "Up to 5,000 users",
+            "business_model": "SaaS subscription",
+            "mvp_features": [
+              "User authentication & workspace setup",
+              "Core workflow execution",
+              "Dashboard and exports"
+            ],
+            "assumptions": [
+              {
+                "field": "auth",
+                "assumption": "MVP relies on magic links to reduce signup friction."
+              }
+            ]
+          },
+          "summary": "Initial brief draft",
+          "created_at": "2026-10-29T17:36:08.245Z"
+        }
+      ],
+      "spec": [
+        {
+          "version_number": 1,
+          "content": {
+            "problem_statement": "Users face friction coordinating the workflow across scattered tools.",
+            "target_audience": "Founders, operators, and team members",
+            "value_proposition": "Testing multi-tenant billing",
+            "goals": [
+              {
+                "goal": "Deliver core MVP workflow",
+                "metric": ">= 60% onboarding completion in week 1"
+              }
+            ],
+            "roles": [
+              {
+                "name": "Admin",
+                "permissions": [
+                  "Configure workspace",
+                  "Invite members",
+                  "Export data"
+                ]
+              },
+              {
+                "name": "Member",
+                "permissions": [
+                  "Create and update items",
+                  "Collaborate on workflows"
+                ]
+              }
+            ],
+            "functional_requirements": [
+              "Email magic-link sign in",
+              "Create and manage core records",
+              "Structured exports"
+            ],
+            "nonfunctional_requirements": [
+              "P95 API latency under 200ms",
+              "Daily PostgreSQL backups"
+            ],
+            "mvp_scope": [
+              "Authentication",
+              "Core CRUD",
+              "Exports"
+            ],
+            "phase2_scope": [
+              "Analytics & third-party webhooks"
+            ],
+            "out_of_scope": [
+              "On-premise enterprise SSO in MVP"
+            ],
+            "risks": [
+              "Scope creep delaying initial launch"
+            ],
+            "open_questions": [
+              "Should guest read-only links be enabled in MVP?"
+            ]
+          },
+          "summary": "Initial spec draft",
+          "created_at": "2026-10-29T17:36:08.245Z"
+        }
+      ],
+      "features": [
+        {
+          "version_number": 1,
+          "content": {
+            "features": [
+              {
+                "id": "feat-proj-1793295368243-duo3d-1",
+                "title": "Authentication & Workspace Access",
+                "description": "Passwordless or credential sign-in with role permissions.",
+                "priority": "P0",
+                "scope": "mvp",
+                "depends_on": [],
+                "completion_criteria": [
+                  "Users sign in and maintain sessions"
+                ],
+                "needs_review": false,
+                "review_reason": null,
+                "stories": [
+                  {
+                    "id": "24743c96-a191-4f23-8877-2743c5389de6",
+                    "as_a": "user",
+                    "i_want": "to sign in smoothly",
+                    "so_that": "I can access my workspace securely",
+                    "acceptance_criteria": [
+                      "Protected routes require valid session"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "feat-proj-1793295368243-duo3d-2",
+                "title": "Core Resource Management",
+                "description": "Create, filter, and update primary domain records.",
+                "priority": "P0",
+                "scope": "mvp",
+                "depends_on": [
+                  "feat-proj-1793295368243-duo3d-1"
+                ],
+                "completion_criteria": [
+                  "CRUD operations validated and persisted"
+                ],
+                "needs_review": false,
+                "review_reason": null,
+                "stories": []
+              }
+            ]
+          },
+          "summary": "Initial features draft",
+          "created_at": "2026-10-29T17:36:08.245Z"
+        }
+      ],
+      "architecture": [
+        {
+          "version_number": 1,
+          "content": {
+            "summary": "Modular 3-tier web architecture with React SPA, REST API, PostgreSQL, Auth, Hosting, and Monitoring.",
+            "nodes": [
+              {
+                "id": "n-web",
+                "type": "web_frontend",
+                "name": "Web App",
+                "responsibility": "User interface and state",
+                "technology": "React + TypeScript + Tailwind",
+                "rationale": "Fast component iteration",
+                "config": {},
+                "x": 0,
+                "y": 120
+              },
+              {
+                "id": "n-api",
+                "type": "backend",
+                "name": "API Service",
+                "responsibility": "Business logic and REST contracts",
+                "technology": "Node.js + Express",
+                "rationale": "Simple modular monolith",
+                "config": {},
+                "x": 340,
+                "y": 120
+              },
+              {
+                "id": "n-db",
+                "type": "database",
+                "name": "Primary DB",
+                "responsibility": "Relational persistence",
+                "technology": "PostgreSQL",
+                "rationale": "ACID integrity & FK constraints",
+                "config": {},
+                "x": 680,
+                "y": 40
+              },
+              {
+                "id": "n-auth",
+                "type": "auth",
+                "name": "Auth",
+                "responsibility": "Sessions & role verification",
+                "technology": "JWT / Magic Link",
+                "rationale": "Low-friction onboarding",
+                "config": {},
+                "x": 680,
+                "y": 220
+              },
+              {
+                "id": "n-host",
+                "type": "hosting",
+                "name": "Hosting",
+                "responsibility": "Automated builds & deploys",
+                "technology": "Vercel",
+                "rationale": "Zero-config CI/CD",
+                "config": {},
+                "x": 0,
+                "y": 320
+              },
+              {
+                "id": "n-mon",
+                "type": "monitoring",
+                "name": "Monitoring",
+                "responsibility": "Error & latency tracking",
+                "technology": "Sentry",
+                "rationale": "Immediate production visibility",
+                "config": {},
+                "x": 340,
+                "y": 320
+              }
+            ],
+            "edges": [
+              {
+                "id": "8bd2b351-596a-47d4-b23c-435ae1423cee",
+                "source": "n-web",
+                "target": "n-api",
+                "protocol": "HTTPS REST",
+                "label": "JSON API calls"
+              },
+              {
+                "id": "b2003d00-99b5-4992-8c52-a2583542b0e8",
+                "source": "n-api",
+                "target": "n-db",
+                "protocol": "SQL / database access",
+                "label": "Parameterized queries"
+              },
+              {
+                "id": "437e7962-f649-4ec3-bc4d-9ddcf7b6bf9d",
+                "source": "n-api",
+                "target": "n-auth",
+                "protocol": "SDK",
+                "label": "Session checks"
+              },
+              {
+                "id": "6c21bffe-8ac9-4405-a39e-ac431e1324dc",
+                "source": "n-host",
+                "target": "n-web",
+                "protocol": "Deploy",
+                "label": "CI on push"
+              },
+              {
+                "id": "2a1a0162-e7dd-432c-adec-a8c779f71afc",
+                "source": "n-api",
+                "target": "n-mon",
+                "protocol": "SDK",
+                "label": "Error telemetry"
+              }
+            ]
+          },
+          "summary": "Initial architecture draft",
+          "created_at": "2026-10-29T17:36:08.245Z"
+        }
+      ],
+      "schema": [
+        {
+          "version_number": 1,
+          "content": {
+            "entities": [
+              {
+                "id": "ent-users",
+                "name": "users",
+                "purpose": "Authenticated users.",
+                "timestamps": true,
+                "x": 0,
+                "y": 40,
+                "fields": [
+                  {
+                    "id": "f-u1",
+                    "name": "id",
+                    "type": "uuid",
+                    "primary_key": true,
+                    "nullable": false,
+                    "unique": false,
+                    "indexed": false,
+                    "default": "gen_random_uuid()"
+                  },
+                  {
+                    "id": "f-u2",
+                    "name": "email",
+                    "type": "varchar(255)",
+                    "primary_key": false,
+                    "nullable": false,
+                    "unique": true,
+                    "indexed": false,
+                    "default": null
+                  },
+                  {
+                    "id": "f-u3",
+                    "name": "name",
+                    "type": "varchar(120)",
+                    "primary_key": false,
+                    "nullable": false,
+                    "unique": false,
+                    "indexed": false,
+                    "default": null
+                  }
+                ]
+              },
+              {
+                "id": "ent-items",
+                "name": "items",
+                "purpose": "Primary workspace records.",
+                "timestamps": true,
+                "x": 360,
+                "y": 40,
+                "fields": [
+                  {
+                    "id": "f-i1",
+                    "name": "id",
+                    "type": "uuid",
+                    "primary_key": true,
+                    "nullable": false,
+                    "unique": false,
+                    "indexed": false,
+                    "default": "gen_random_uuid()"
+                  },
+                  {
+                    "id": "f-i2",
+                    "name": "user_id",
+                    "type": "uuid",
+                    "primary_key": false,
+                    "nullable": false,
+                    "unique": false,
+                    "indexed": true,
+                    "default": null
+                  },
+                  {
+                    "id": "f-i3",
+                    "name": "title",
+                    "type": "varchar(180)",
+                    "primary_key": false,
+                    "nullable": false,
+                    "unique": false,
+                    "indexed": false,
+                    "default": null
+                  },
+                  {
+                    "id": "f-i4",
+                    "name": "status",
+                    "type": "varchar(40)",
+                    "primary_key": false,
+                    "nullable": false,
+                    "unique": false,
+                    "indexed": false,
+                    "default": "'active'"
+                  }
+                ]
+              }
+            ],
+            "relationships": [
+              {
+                "id": "ea62d311-47a1-4298-a444-f0efa1fc81f7",
+                "source_entity": "ent-items",
+                "source_field": "f-i2",
+                "target_entity": "ent-users",
+                "target_field": "f-u1",
+                "kind": "one_to_many",
+                "on_delete": "CASCADE"
+              }
+            ]
+          },
+          "summary": "Initial schema draft",
+          "created_at": "2026-10-29T17:36:08.245Z"
+        }
+      ],
+      "api": [
+        {
+          "version_number": 1,
+          "content": {
+            "endpoints": [
+              {
+                "id": "a642d740-27ed-4f93-b4d8-57a60a95202b",
+                "method": "GET",
+                "path": "/api/items",
+                "purpose": "List items belonging to the signed-in user.",
+                "auth_required": true,
+                "role": "Member",
+                "request_schema": "// ?status=active",
+                "response_schema": "{ \"items\": [{ \"id\": \"uuid\", \"title\": \"Sample\", \"status\": \"active\" }] }",
+                "validation": [
+                  "Scoped to caller user_id"
+                ],
+                "errors": [
+                  "401 Unauthorized"
+                ],
+                "rate_limit": "60/min",
+                "entity_ids": [
+                  "ent-items"
+                ],
+                "feature_id": null,
+                "test_cases": [
+                  "Returns 200 with caller's items"
+                ],
+                "needs_review": false,
+                "review_reason": null
+              },
+              {
+                "id": "d342317c-394c-4680-ad1e-8bd6b3570a5e",
+                "method": "POST",
+                "path": "/api/items",
+                "purpose": "Create a new workspace item.",
+                "auth_required": true,
+                "role": "Member",
+                "request_schema": "{ \"title\": \"Launch checklist\" }",
+                "response_schema": "{ \"id\": \"uuid\", \"title\": \"Launch checklist\", \"status\": \"active\" }",
+                "validation": [
+                  "title: required, 1..180 chars"
+                ],
+                "errors": [
+                  "401 Unauthorized",
+                  "422 Unprocessable Entity"
+                ],
+                "rate_limit": "20/min",
+                "entity_ids": [
+                  "ent-items"
+                ],
+                "feature_id": null,
+                "test_cases": [
+                  "Valid title creates row and returns 201"
+                ],
+                "needs_review": false,
+                "review_reason": null
+              }
+            ]
+          },
+          "summary": "Initial api draft",
+          "created_at": "2026-10-29T17:36:08.245Z"
+        }
+      ],
+      "roadmap": [
+        {
+          "version_number": 1,
+          "content": {
+            "tasks": [
+              {
+                "id": "33bcec45-a5e9-43a4-9f90-b7d9aa2268d8",
+                "milestone": 1,
+                "title": "Scaffold repository & environment config",
+                "description": "",
+                "deliverable": "Running dev skeleton",
+                "depends_on": [],
+                "files": [
+                  "package.json"
+                ],
+                "acceptance_criteria": [
+                  {
+                    "text": "App boots locally",
+                    "checked": false
+                  }
+                ],
+                "tests": [],
+                "complexity": "S",
+                "status": "ready",
+                "feature_id": null,
+                "endpoint_ids": [],
+                "entity_ids": [],
+                "needs_review": false,
+                "review_reason": null
+              },
+              {
+                "id": "953eebcd-ff52-4bcf-ab6e-a90ce03e250f",
+                "milestone": 2,
+                "title": "Create initial PostgreSQL migration",
+                "description": "",
+                "deliverable": "Applied schema migration",
+                "depends_on": [],
+                "files": [
+                  "prisma/schema.prisma"
+                ],
+                "acceptance_criteria": [
+                  {
+                    "text": "Tables & FKs created",
+                    "checked": false
+                  }
+                ],
+                "tests": [],
+                "complexity": "M",
+                "status": "ready",
+                "feature_id": null,
+                "endpoint_ids": [],
+                "entity_ids": [
+                  "ent-users",
+                  "ent-items"
+                ],
+                "needs_review": false,
+                "review_reason": null
+              },
+              {
+                "id": "f36bb40c-b3f3-40e4-a11a-1a0534c8a598",
+                "milestone": 4,
+                "title": "Implement items REST endpoints",
+                "description": "",
+                "deliverable": "Tested CRUD endpoints",
+                "depends_on": [],
+                "files": [
+                  "src/routes/items.ts"
+                ],
+                "acceptance_criteria": [
+                  {
+                    "text": "GET and POST /api/items pass tests",
+                    "checked": false
+                  }
+                ],
+                "tests": [],
+                "complexity": "M",
+                "status": "ready",
+                "feature_id": null,
+                "endpoint_ids": [],
+                "entity_ids": [
+                  "ent-items"
+                ],
+                "needs_review": false,
+                "review_reason": null
+              }
+            ]
+          },
+          "summary": "Initial roadmap draft",
+          "created_at": "2026-10-29T17:36:08.245Z"
+        }
+      ]
     }
   },
   "decisions": {
@@ -4964,6 +6126,16 @@
         "decision": "Generated complete full-stack blueprint from prompt/chat: 7 interconnected visual artifacts, 4 database entities, 5 API endpoints, and 6 roadmap tasks.",
         "reasoning": "Automated synthesis from user specification",
         "created_at": "2026-10-28T17:45:03.582Z"
+      }
+    ],
+    "proj-1793295368243-duo3d": [
+      {
+        "id": "dec-1793295368245",
+        "category": "approval",
+        "title": "Project created",
+        "decision": "Project initialized with modular panels.",
+        "reasoning": "Created via wizard",
+        "created_at": "2026-10-29T17:36:08.243Z"
       }
     ]
   },
@@ -5310,8 +6482,43 @@
     ],
     "proj-1793209176591-5bctv": [],
     "proj-1793209446423-hamev": [],
-    "proj-1793209503582-oqhqq": []
+    "proj-1793209503582-oqhqq": [],
+    "proj-1793295368243-duo3d": []
   },
-  "chats": {},
-  "module_docs": {}
+  "chats": {
+    "proj-1793295368243-duo3d": []
+  },
+  "module_docs": {
+    "proj-1793295368243-duo3d": {}
+  },
+  "processed_webhooks": [
+    "subscription_created_test_sub_replay",
+    "sim_evt_1793295368235_yhwe"
+  ],
+  "subscriptions": {
+    "57a6bb81-a6e6-4b67-bb2e-0017a50bf26a": {
+      "subscription_id": "sim_sub_1793295368235",
+      "customer_id": "sim_cust_57a6bb81-a6e6-4b67-bb2e-0017a50bf26a",
+      "plan": "pro",
+      "interval": "yearly",
+      "status": "active",
+      "current_period_end": "2027-10-29T17:36:08.235Z",
+      "renews_at": "2027-10-29T17:36:08.235Z",
+      "cancel_at_period_end": false,
+      "created_at": "2026-10-29T17:36:08.235Z",
+      "updated_at": "2026-10-29T17:36:08.235Z"
+    }
+  },
+  "transactions": [
+    {
+      "id": "tx_1793295368235_l2n6",
+      "user_id": "57a6bb81-a6e6-4b67-bb2e-0017a50bf26a",
+      "event_name": "subscription_created",
+      "amount": 19000,
+      "currency": "USD",
+      "status": "succeeded",
+      "invoice_url": null,
+      "created_at": "2026-10-29T17:36:08.235Z"
+    }
+  ]
 }
