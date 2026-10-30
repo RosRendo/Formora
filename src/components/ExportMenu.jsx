@@ -21,6 +21,11 @@ const SEPARATE_MDS = [
   ["schema", "05-database.md"],
   ["api", "06-api.md"],
   ["roadmap", "07-roadmap.md"],
+  ["flows", "10-user-flows.md"],
+  ["ui", "11-ui-blueprint.md"],
+  ["security", "12-security-plan.md"],
+  ["testing", "13-testing-plan.md"],
+  ["deployment", "14-deployment-guide.md"],
 ];
 
 export default function ExportMenu() {

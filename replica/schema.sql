@@ -38,7 +38,7 @@ CREATE TABLE projects (
 CREATE TABLE artifacts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-  kind VARCHAR(50) NOT NULL CHECK (kind IN ('brief', 'spec', 'features', 'architecture', 'schema', 'api', 'roadmap', 'flows', 'ui', 'security', 'testing')),
+  kind VARCHAR(50) NOT NULL CHECK (kind IN ('brief', 'spec', 'features', 'architecture', 'schema', 'api', 'roadmap', 'flows', 'ui', 'security', 'testing', 'deployment')),
   current_version INTEGER NOT NULL DEFAULT 1,
   status VARCHAR(50) NOT NULL DEFAULT 'draft' CHECK (status IN ('empty', 'draft', 'changed', 'approved')),
   needs_review BOOLEAN NOT NULL DEFAULT false,

@@ -65,6 +65,8 @@ export function refsFrom(...contents) {
     (c?.screens || []).forEach((sc) => { r[sc.id] = sc.name; });
     (c?.controls || []).forEach((ct) => { r[ct.id] = ct.title; });
     (c?.cases || []).forEach((tc) => { r[tc.id] = tc.title; });
+    (c?.env_vars || []).forEach((ev) => { r[ev.id] = ev.key; });
+    (c?.checklist || []).forEach((ck) => { r[ck.id] = ck.title; });
   });
   return r;
 }

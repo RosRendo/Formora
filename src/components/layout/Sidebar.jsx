@@ -27,7 +27,7 @@ export const PROJECT_NAV = [
   { group: "Deliver", items: [
     { to: "roadmap", label: "Roadmap", icon: Map, kind: "roadmap" },
     { to: "testing", label: "Testing Center", icon: FlaskConical, kind: "testing" },
-    { to: "deployment", label: "Deployment Center", icon: Rocket, later: true },
+    { to: "deployment", label: "Deployment Center", icon: Rocket, kind: "deployment" },
     { to: "decisions", label: "Decision Log", icon: ScrollText },
     { to: "settings", label: "Project Settings", icon: Settings },
   ] },

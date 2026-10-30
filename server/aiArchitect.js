@@ -11,6 +11,11 @@ import {
   normalizePhase2Updates,
   summarizePhase2Placements,
 } from "./phase2Architect.js";
+import {
+  buildDeploymentPlan,
+  normalizeDeploymentUpdates,
+  summarizeDeploymentPlacements,
+} from "./phase3Architect.js";
 
 const uid = () => crypto.randomUUID();
 
@@ -56,6 +61,7 @@ export const MODULE_META = {
   ui: { label: "UI/UX Blueprint", path: "ui", docFile: "11-ui-blueprint.md" },
   security: { label: "Security Plan", path: "security", docFile: "12-security-plan.md" },
   testing: { label: "Testing Center", path: "testing", docFile: "13-testing-plan.md" },
+  deployment: { label: "Deployment Center", path: "deployment", docFile: "14-deployment-guide.md" },
   docs: { label: "Module Docs (.md)", path: "docs", docFile: "09-architect-notes.md" },
 };
 
@@ -1523,7 +1529,7 @@ function detectTargetModules(message, explicitTargets, isFreshProject) {
   if (isFullIdea && !/\b(only|just)\s+(database|schema|table|api|endpoint|architecture|roadmap|doc)\b/i.test(m)) {
     return {
       mode: "full",
-      targets: new Set(["brief", "spec", "features", "flows", "ui", "architecture", "schema", "api", "security", "roadmap", "testing", "docs"]),
+      targets: new Set(["brief", "spec", "features", "flows", "ui", "architecture", "schema", "api", "security", "roadmap", "testing", "deployment", "docs"]),
     };
   }
 
@@ -1561,6 +1567,9 @@ function detectTargetModules(message, explicitTargets, isFreshProject) {
   }
   if (/\b(test|tests|testing|vitest|playwright|e2e|unit test|integration test|coverage|qa|spec\.ts)\b/i.test(m)) {
     targets.add("testing");
+  }
+  if (/\b(deploy|deployment|docker|dockerfile|env|environment variable|ci\/cd|github actions|vercel|railway|fly\.io|render|production|dns|ssl|rollback|runbook)\b/i.test(m)) {
+    targets.add("deployment");
   }
   if (/\b(md|markdown|doc|docs|note|notes|readme|guide)\b/i.test(m)) {
     targets.add("docs");
@@ -1833,6 +1842,7 @@ export function normalizeModuleUpdates(updates, existingArtifacts = {}) {
   }
 
   Object.assign(out, normalizePhase2Updates(updates, existingArtifacts));
+  Object.assign(out, normalizeDeploymentUpdates(updates, existingArtifacts));
   if (updates.docs) {
     out.docs = typeof updates.docs === "string" ? { notes: updates.docs } : updates.docs;
   }
@@ -1918,6 +1928,7 @@ export function summarizePlacements(normalizedUpdates) {
   }
 
   placements.push(...summarizePhase2Placements(normalizedUpdates, MODULE_META));
+  placements.push(...summarizeDeploymentPlacements(normalizedUpdates, MODULE_META));
   if (placements.length > 0 || normalizedUpdates.docs) {
     placements.push({
       kind: "docs",
@@ -2237,6 +2248,20 @@ function runSemanticArchitect({ message, project, existingArtifacts, targets, mo
   }
   if (targets.has("testing")) {
     updates.testing = buildTestingPlan({ projectName, features: activeFeatures, endpoints: activeEndpoints, schema: activeSchema });
+  }
+  if (targets.has("deployment")) {
+    const activeArch = updates.architecture || existingArtifacts.architecture?.content || {};
+    const activeSec = updates.security || existingArtifacts.security?.content || {};
+    const activeTst = updates.testing || existingArtifacts.testing?.content || {};
+    updates.deployment = buildDeploymentPlan({
+      projectName,
+      brief: activeBrief,
+      architecture: activeArch,
+      schema: activeSchema,
+      endpoints: activeEndpoints,
+      security: activeSec,
+      testing: activeTst,
+    });
   }
   if (targets.has("docs")) {
     updates.docs = {

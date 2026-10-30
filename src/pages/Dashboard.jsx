@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { EmptyState, PageError, PageLoading } from "@/components/common";
 import { ProjectRow, useProjects } from "./Projects";
 
-const FLOW = ["Brief", "Requirements", "Features", "Flows", "UI/UX", "Architecture", "Database", "API", "Security", "Roadmap", "Testing"];
+const FLOW = ["Brief", "Requirements", "Features", "Flows", "UI/UX", "Architecture", "Database", "API", "Security", "Roadmap", "Testing", "Deploy"];
 
 export default function Dashboard() {
   const { user } = useAuth();

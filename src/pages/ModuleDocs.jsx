@@ -20,6 +20,7 @@ import {
   PenTool,
   ShieldCheck,
   FlaskConical,
+  Rocket,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,7 @@ const DOC_ICONS = {
   ui: PenTool,
   security: ShieldCheck,
   testing: FlaskConical,
+  deployment: Rocket,
 };
 
 function InlineMd({ text }) {

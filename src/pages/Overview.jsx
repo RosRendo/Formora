@@ -6,7 +6,7 @@ import { http, KIND_LABEL, KIND_PATH } from "@/lib/api";
 import { useProject } from "@/context/ProjectContext";
 import { PageError, PageLoading } from "@/components/common";
 
-const PIPE = ["brief", "spec", "features", "flows", "ui", "architecture", "schema", "api", "security", "roadmap", "testing"];
+const PIPE = ["brief", "spec", "features", "flows", "ui", "architecture", "schema", "api", "security", "roadmap", "testing", "deployment"];
 const NEXT_COPY = {
   brief: "Review the brief and its assumptions, then approve it.",
   spec: "Generate the product requirements from the approved brief.",
@@ -19,6 +19,7 @@ const NEXT_COPY = {
   ui: "Review desktop & mobile wireframes, states, and design tokens.",
   security: "Verify implemented vs planned security controls and threat mitigations.",
   testing: "Review unit, API integration, and E2E test coverage.",
+  deployment: "Complete pre-flight gates, verify env vars, and export the release runbook.",
 };
 
 function Stage({ k, a, pid, i }) {

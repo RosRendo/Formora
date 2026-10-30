@@ -836,3 +836,4 @@ export function summarizePhase2Placements(normalizedUpdates, moduleMeta) {
 
   return placements;
 }
+

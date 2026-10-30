@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { http, errMsg } from "@/lib/api";
 import { EmptyState, PageError, PageHeader, PageLoading } from "@/components/common";
 
-const STAGES = ["brief", "spec", "features", "flows", "ui", "architecture", "schema", "api", "security", "roadmap", "testing"];
+const STAGES = ["brief", "spec", "features", "flows", "ui", "architecture", "schema", "api", "security", "roadmap", "testing", "deployment"];
 
 export function ProjectRow({ p }) {
   const pct = p.tasks_total ? Math.round((p.tasks_done / p.tasks_total) * 100) : 0;

@@ -459,7 +459,7 @@ const CAPABILITIES = [
     idx: "01",
     title: "Module-routing chat",
     body: "Describe an idea or ask for a change (`Ctrl+J`). Tables land in the database panel, routes in API Explorer, and tasks in Roadmap—never one giant chat blob.",
-    meta: "server/aiArchitect.js -> 8 artifact targets",
+    meta: "server/aiArchitect.js -> 12 artifact targets",
   },
   {
     idx: "02",
@@ -481,9 +481,9 @@ const CAPABILITIES = [
   },
   {
     idx: "05",
-    title: "Nine separated .md specs",
-    body: "Export `01-brief.md` through `09-architect-notes.md` individually or together so coding agents read only the exact slice they are implementing.",
-    meta: "docs/01..09.md GFM bundle",
+    title: "Fourteen separated .md specs",
+    body: "Export `01-brief.md` through `14-deployment-guide.md` individually or together so coding agents read only the exact slice they are implementing.",
+    meta: "docs/01..14.md GFM bundle",
   },
   {
     idx: "06",

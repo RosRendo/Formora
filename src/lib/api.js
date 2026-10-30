@@ -59,6 +59,7 @@ export const KIND_LABEL = {
   ui: "UI/UX blueprint",
   security: "Security plan",
   testing: "Testing center",
+  deployment: "Deployment center",
   docs: "Module docs (.md)",
 };
 
@@ -74,5 +75,6 @@ export const KIND_PATH = {
   ui: "ui",
   security: "security",
   testing: "testing",
+  deployment: "deployment",
   docs: "docs",
 };

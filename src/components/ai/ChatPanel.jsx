@@ -23,6 +23,7 @@ import {
   PenTool,
   ShieldCheck,
   FlaskConical,
+  Rocket,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,7 @@ const MODULE_STYLE = {
   ui: { icon: PenTool, tint: "#d97706", tag: "UI/UX Wireframes" },
   security: { icon: ShieldCheck, tint: "#dc2626", tag: "Security Plan" },
   testing: { icon: FlaskConical, tint: "#059669", tag: "Testing Center" },
+  deployment: { icon: Rocket, tint: "#0284c7", tag: "Deployment" },
   docs: { icon: FolderCode, tint: "#ec4899", tag: "Separate .md" },
 };
 
@@ -58,6 +60,7 @@ const TARGET_PILLS = [
   { id: "ui", label: "UI/UX" },
   { id: "security", label: "Security" },
   { id: "testing", label: "Testing" },
+  { id: "deployment", label: "Deploy" },
   { id: "docs", label: "Docs (.md)" },
 ];
 

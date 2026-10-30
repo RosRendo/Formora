@@ -566,6 +566,42 @@ ${testCases
   )
   .join("\n\n") || "_No test cases defined yet._"}`, "testing");
 
+  const depContent = artifacts?.deployment?.content || {};
+  const depEnvs = depContent.env_vars || [];
+  const depChecklist = depContent.checklist || [];
+  const depSteps = depContent.steps || [];
+  const deploymentMd = withNote(`# 14 · Deployment Guide & Runbook — ${p.name || "Untitled"}
+
+> **Status**: \`${artifacts?.deployment?.artifact?.status || "draft"}\` · **Version**: \`v${artifacts?.deployment?.artifact?.current_version || 1}\` · **Updated**: ${today}
+
+## Target Topology
+- **Hosting / Compute**: ${depContent.hosting_target || brief.hosting || "Managed Cloud"}
+- **Database Engine**: ${depContent.database_target || brief.database || "PostgreSQL"}
+- **Health Endpoint**: \`${depContent.healthcheck_url || "/api/health"}\`
+- **Summary**: ${depContent.target_summary || "Zero-downtime deployment blueprint."}
+
+## Environment Variable Catalog (\`.env.example\`)
+| Variable | Scope | Required | Secret | Example / Format | Purpose |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+${depEnvs.map((ev) => `| \`${ev.key}\` | \`${ev.scope}\` | ${ev.required ? "Yes" : "No"} | ${ev.secret ? "Secret" : "Public"} | \`${ev.example || ""}\` | ${ev.description || ""} |`).join("\n") || "| `NODE_ENV` | `server` | Yes | Public | `production` | Runtime mode |"}
+
+## Pre-Flight Readiness Checklist
+${depChecklist.map((c) => `- [${c.checked ? "x" : " "}] **[${c.category}]** ${c.title}${c.notes ? ` — _${c.notes}_` : ""}`).join("\n") || "_No pre-flight checks listed._"}
+
+## Step-by-Step Deployment Runbook
+${depSteps
+  .map(
+    (st, i) => `### Step ${i + 1}: ${st.stage} — ${st.title}
+\`\`\`bash
+${st.command || "# execute step"}
+\`\`\`
+- **Verification**: ${st.verification || "Verify green status."}`
+  )
+  .join("\n\n") || "_No deployment steps defined._"}
+
+## Rollback Procedure
+${depContent.rollback_plan || "Revert release pointer to previous healthy commit SHA and verify `/api/health`."}`, "deployment");
+
   return [
     {
       kind: "brief",
@@ -709,6 +745,17 @@ ${testCases
       countLabel: `${testCases.length} test specs`,
       markdown: testingMd,
       notes: customDocs?.testing?.notes || "",
+    },
+    {
+      kind: "deployment",
+      filename: "14-deployment-guide.md",
+      title: "Deployment Center",
+      visualPath: "deployment",
+      status: artifacts?.deployment?.artifact?.status || "draft",
+      version: artifacts?.deployment?.artifact?.current_version || 1,
+      countLabel: `${depEnvs.length} env vars · ${depSteps.length} steps`,
+      markdown: deploymentMd,
+      notes: customDocs?.deployment?.notes || "",
     },
   ];
 }

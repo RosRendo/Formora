@@ -17,6 +17,7 @@ import {
 } from "./generator.js";
 import { runArchitectChat, normalizeModuleUpdates } from "./aiArchitect.js";
 import { derivePhase2FromProject } from "./phase2Architect.js";
+import { deriveDeploymentFromProject } from "./phase3Architect.js";
 import {
   PLANS,
   verifyLemonSqueezySignature,
@@ -195,8 +196,8 @@ if (repairedOwners) {
 }
 
 // --- Helper: Apply Structured Module Updates Directly Into Their Own Panels ---
-const ARTIFACT_KINDS = ["brief", "spec", "features", "flows", "ui", "architecture", "schema", "api", "security", "roadmap", "testing"];
-const PHASE2_KINDS = ["flows", "ui", "security", "testing"];
+const ARTIFACT_KINDS = ["brief", "spec", "features", "flows", "ui", "architecture", "schema", "api", "security", "roadmap", "testing", "deployment"];
+const PHASE2_KINDS = ["flows", "ui", "security", "testing", "deployment"];
 
 function backfillMissingPhase2ForProject(project) {
   if (!project) return false;
@@ -207,7 +208,10 @@ function backfillMissingPhase2ForProject(project) {
   const missing = PHASE2_KINDS.filter((k) => !arts[k]);
   if (!missing.length) return false;
 
-  const derived = derivePhase2FromProject(project, arts);
+  const derived = {
+    ...derivePhase2FromProject(project, arts),
+    deployment: deriveDeploymentFromProject(project, arts),
+  };
   const now = new Date().toISOString();
   const isApprovedSample = Boolean(project.is_sample);
 
@@ -422,6 +426,10 @@ function createEmptyArtifacts(pid, name, description, answers = {}) {
     Object.fromEntries(Object.entries(baseline).map(([k, v]) => [k, { content: v }]))
   );
   Object.assign(baseline, derivedPhase2);
+  baseline.deployment = deriveDeploymentFromProject(
+    { id: pid, name, description },
+    Object.fromEntries(Object.entries(baseline).map(([k, v]) => [k, { content: v }]))
+  );
 
   const artifacts = {};
   const versions = {};
@@ -1266,16 +1274,20 @@ app.put("/api/projects/:pid/artifacts/:kind", (req, res) => {
     }
   };
   if (req.params.kind === "brief") {
-    flagDownstream("spec", "architecture");
+    flagDownstream("spec", "architecture", "deployment");
   } else if (req.params.kind === "spec") {
     flagDownstream("features", "flows");
   } else if (req.params.kind === "features") {
     flagDownstream("flows", "ui", "testing");
+  } else if (req.params.kind === "architecture") {
+    flagDownstream("security", "deployment");
   } else if (req.params.kind === "schema") {
     impact.endpoints = arts.api?.content?.endpoints?.length || 0;
-    flagDownstream("api", "security", "testing");
+    flagDownstream("api", "security", "testing", "deployment");
   } else if (req.params.kind === "api") {
     flagDownstream("security", "testing");
+  } else if (req.params.kind === "security") {
+    flagDownstream("deployment");
   } else if (req.params.kind === "flows") {
     flagDownstream("ui", "testing");
   }
@@ -1494,6 +1506,7 @@ const WORKFLOWS = [
   { id: "security", label: "Run security controls & risk review", target: "security", requires: ["architecture", "api"] },
   { id: "tasks", label: "Create implementation tasks", target: "roadmap", requires: ["spec", "features"] },
   { id: "testing", label: "Generate unit, integration & E2E test plan", target: "testing", requires: ["features", "api"] },
+  { id: "deployment", label: "Generate deployment guide, env catalog & CI/CD", target: "deployment", requires: ["architecture", "security"] },
 ];
 
 app.get("/api/ai/workflows", authRequired, (req, res) => {

@@ -1,33 +1,39 @@
-# Build Log: Formora (Blueprint OS Clone)
+# Build Log: Formora (Architectural Blueprint OS)
 
-Date: 2026-10-28
+Updated: 2026-10-30
 Repository: `d:\FOR RENDO (ONLY )\Personal Project\Formora`
 
-## Screens Implementation Log
+## Screens & Modules Implementation Log
 
-| ID | Screen | Status | Notes |
-| :--- | :--- | :--- | :--- |
-| S01 | Login / Register (`/login`) | Done | Email/password login & registration, demo credentials pre-wired, animated SVG architecture hero visual |
-| S02 | Dashboard (`/dashboard`) | Done | Greeting, project counts, task completion counter, needs review alerts, 8-step pipeline tracker |
-| S03 | Projects (`/projects`) | Done | Project card grid, status filters, search input, archived project toggle |
-| S04 | New Project Wizard (`/projects/new`) | Done | Multi-step interactive guided project brief creation, initializes 7 core artifacts |
-| S05 | Project Overview (`/p/:pid`) | Done | Blueprint health stats, artifact status matrix, recent ADRs feed, AI assistant quick action |
-| S06 | Project Brief (`/p/:pid/brief`) | Done | Structured constraints, assumptions list, live draft editing, version bump, approval action |
-| S07 | Product Requirements (`/p/:pid/requirements`) | Done | Problem statement, value prop, user roles, core goals, functional & non-functional reqs, risks |
-| S08 | Features & Stories (`/p/:pid/features`) | Done | Feature catalog with priorities, complexity tags, user stories, acceptance criteria, modal editor |
-| S09 | Tech Stack (`/p/:pid/stack`) | Done | Automated tech stack evaluator based on brief and architecture |
-| S10 | Architecture Canvas (`/p/:pid/architecture`) | Done | Interactive `@xyflow/react` topology diagram, node toolbox, protocol selector, live architecture linter |
-| S11 | Database Designer (`/p/:pid/database`) | Done | Interactive ERD diagram, visual table editor, field types, primary/foreign keys, live PostgreSQL & Prisma code generation |
-| S12 | API Catalog (`/p/:pid/api`) | Done | REST endpoint explorer, HTTP method badges, request/response bodies, feature mappings |
-| S13 | Roadmap (`/p/:pid/roadmap`) | Done | Implementation task board with phase groupings, status transitions, hours estimation |
-| S14 | Decision Log (`/p/:pid/decisions`) | Done | Architecture Decision Records (ADRs) with context, decisions, rationale, and timestamps |
-| S15 | Project Settings (`/p/:pid/settings`) | Done | Project metadata, archiving, export, and danger zone delete confirmation |
-| S16 | Later Phase Placeholders (`/p/:pid/flows`, `/ui`, etc.) | Done | Roadmap phase preview screens |
+| ID | Screen / Route | Phase | Status | Notes |
+| :--- | :--- | :---: | :--- | :--- |
+| S00 | SaaS Landing Page (`/`) | Phase 1 | Done | Kinetic Swiss drafting-table landing page: autonomous prompt-to-module router, live mutation cascade simulator, separated `.md` viewer, monthly/annual pricing |
+| S01 | Login / Register (`/login`) | Phase 1 | Done | Email/password login & registration, Google OAuth session exchange, demo workspace instant sign-in |
+| S02 | Dashboard (`/dashboard`) | Phase 1–3 | Done | Greeting, project counts, task completion counter, needs-review alerts, 12-step blueprint pipeline tracker |
+| S03 | Projects (`/projects`) | Phase 1–3 | Done | Project list with 12-artifact approval progress bar, task completion %, archived toggle |
+| S04 | New Project Wizard (`/projects/new`) | Phase 1–3 | Done | Guided wizard or 1-prompt AI decomposition across all 12 blueprint artifacts |
+| S05 | Billing & Plans (`/billing`) | Phase 1 | Done | Starter / Pro / Team plans, active usage meters, Lemon Squeezy checkout & customer portal integration |
+| S06 | Project Overview (`/p/:pid`) | Phase 1–3 | Done | 12-stage blueprint approval pipeline, next recommended step CTA, downstream review queue, recent ADRs |
+| S07 | Project Brief (`/p/:pid/brief`) | Phase 1 | Done | Structured constraints, stack choices, assumptions list, versioned diff & approval |
+| S08 | Product Requirements (`/p/:pid/requirements`) | Phase 1 | Done | Problem statement, value prop, user roles, core goals, functional & non-functional reqs, risks |
+| S09 | Features & Stories (`/p/:pid/features`) | Phase 1 | Done | Feature catalog with MVP/later priorities, complexity tags, user stories, acceptance criteria |
+| S10 | User Flows (`/p/:pid/flows`) | Phase 2 | Done | Role-based step-by-step journeys, failure/edge-case recovery branches, Mermaid `flowchart TD` export (`10-user-flows.md`) |
+| S11 | UI/UX Blueprint (`/p/:pid/ui`) | Phase 2 | Done | Desktop/Mobile wireframe renderer, interactive 5-state UI simulator, component inventory, CSS `:root` tokens (`11-ui-blueprint.md`) |
+| S12 | Tech Stack (`/p/:pid/stack`) | Phase 1 | Done | Automated tech stack evaluator derived from brief and architecture |
+| S13 | Architecture Canvas (`/p/:pid/architecture`) | Phase 1 | Done | Interactive `@xyflow/react` topology diagram, node toolbox, protocol selector, live architecture linter |
+| S14 | Database Designer (`/p/:pid/database`) | Phase 1 | Done | Interactive ERD canvas, table/field editor, PK/FK constraints, live PostgreSQL DDL & Prisma schema compilers |
+| S15 | API Explorer (`/p/:pid/api`) | Phase 1 | Done | REST endpoint catalog, HTTP method badges, request/response JSON contracts, feature & entity links |
+| S16 | Module Docs (`/p/:pid/docs`) | Phase 1–3 | Done | 14 separated GFM `.md` specifications (`01-brief.md` .. `14-deployment-guide.md`) with preview, raw source, custom notes & bulk download |
+| S17 | Security Plan (`/p/:pid/security`) | Phase 2 | Done | Implemented vs. Planned security control checklist across 5 categories + STRIDE-lite threat register (`12-security-plan.md`) |
+| S18 | Roadmap (`/p/:pid/roadmap`) | Phase 1 | Done | Dependency-ordered vertical slice task board with phase filters, status transitions & upstream drift flags |
+| S19 | Testing Center (`/p/:pid/testing`) | Phase 2 | Done | Traceable Unit, API Integration & E2E test suites, live feature/API coverage meters, `.spec.ts` exporter (`13-testing-plan.md`) |
+| S20 | Deployment Center (`/p/:pid/deployment`) | Phase 3 | Done | Weighted Go-Live Readiness score, 11-module sign-off audit, `.env.example` catalog, CLI release runbook, rollback plan, `Dockerfile` & GitHub Actions `deploy.yml` exporters (`14-deployment-guide.md`) |
+| S21 | Decision Log (`/p/:pid/decisions`) | Phase 1 | Done | Chronological Architecture Decision Records (ADRs) with automatic approval logging |
+| S22 | Project Settings (`/p/:pid/settings`) | Phase 1 | Done | Project metadata, archiving/restoring, and danger-zone deletion |
 
-## Core Infrastructure
+## Production Infrastructure Summary
 
-- **API Server**: Express.js server on port 3001 with JWT session management, cookie parsing, and persistent storage.
-- **Frontend App**: Vite + React 18 SPA on port 3000 with `@xyflow/react` canvas, Lucide icons, Sonner notifications, and next-themes dark/light toggle.
-- **DDL Generator**: Dynamic PostgreSQL DDL & Prisma schema engine matching Blueprint OS contracts.
-- **AI Assistant**: Slide-over panel supporting 6 workflows with line diffing and proposal acceptance.
-- **Seed Data**: Pre-loaded demo user (`demo@blueprintos.dev / Blueprint123!`) and sample project ("Shelfmate (sample)").
+- **Persistence**: Relational SQLite WAL engine (`server/database.js` via `node:sqlite`) across 11 normalized tables with automatic legacy JSON migration and Phase 2/3 artifact backfilling.
+- **Security**: Single-use SHA-256 refresh token rotation, centralized `requireProjectAccess` multi-tenant IDOR protection, sliding-window rate limiters, security headers, and production secret guards.
+- **Billing**: Lemon Squeezy Merchant-of-Record checkout, portal management, tier quota gates, and timing-safe HMAC-SHA256 idempotent webhook ledger.
+- **AI Architect**: Modular prompt router (`Ctrl+J`) and 11 panel-specific AI workflows supporting zero-key deterministic decomposition plus optional Gemini / OpenAI BYOK synthesis.
