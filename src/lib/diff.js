@@ -61,6 +61,10 @@ export function refsFrom(...contents) {
     (c?.nodes || []).forEach((n) => { r[n.id] = n.name; });
     (c?.endpoints || []).forEach((e) => { r[e.id] = `${e.method} ${e.path}`; });
     (c?.tasks || []).forEach((t) => { r[t.id] = t.title; });
+    (c?.flows || []).forEach((fl) => { r[fl.id] = fl.title; });
+    (c?.screens || []).forEach((sc) => { r[sc.id] = sc.name; });
+    (c?.controls || []).forEach((ct) => { r[ct.id] = ct.title; });
+    (c?.cases || []).forEach((tc) => { r[tc.id] = tc.title; });
   });
   return r;
 }

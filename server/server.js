@@ -16,6 +16,7 @@ import {
   validateSchema,
 } from "./generator.js";
 import { runArchitectChat, normalizeModuleUpdates } from "./aiArchitect.js";
+import { derivePhase2FromProject } from "./phase2Architect.js";
 import {
   PLANS,
   verifyLemonSqueezySignature,
@@ -194,7 +195,63 @@ if (repairedOwners) {
 }
 
 // --- Helper: Apply Structured Module Updates Directly Into Their Own Panels ---
-const ARTIFACT_KINDS = ["brief", "spec", "features", "architecture", "schema", "api", "roadmap"];
+const ARTIFACT_KINDS = ["brief", "spec", "features", "flows", "ui", "architecture", "schema", "api", "security", "roadmap", "testing"];
+const PHASE2_KINDS = ["flows", "ui", "security", "testing"];
+
+function backfillMissingPhase2ForProject(project) {
+  if (!project) return false;
+  const pid = project.id;
+  if (!DB.artifacts[pid]) DB.artifacts[pid] = {};
+  if (!DB.artifact_versions[pid]) DB.artifact_versions[pid] = {};
+  const arts = DB.artifacts[pid];
+  const missing = PHASE2_KINDS.filter((k) => !arts[k]);
+  if (!missing.length) return false;
+
+  const derived = derivePhase2FromProject(project, arts);
+  const now = new Date().toISOString();
+  const isApprovedSample = Boolean(project.is_sample);
+
+  for (const kind of missing) {
+    const content = derived[kind] || {};
+    arts[kind] = {
+      artifact: {
+        id: `art-${pid}-${kind}`,
+        project_id: pid,
+        kind,
+        current_version: 1,
+        approved_version: isApprovedSample ? 1 : null,
+        approved_at: isApprovedSample ? now : null,
+        status: isApprovedSample ? "approved" : "draft",
+        needs_review: false,
+        review_reason: null,
+        updated_at: now,
+      },
+      content,
+      approved_content: isApprovedSample ? JSON.parse(JSON.stringify(content)) : null,
+    };
+    if (!DB.artifact_versions[pid][kind] || !DB.artifact_versions[pid][kind].length) {
+      DB.artifact_versions[pid][kind] = [
+        {
+          version_number: 1,
+          content: JSON.parse(JSON.stringify(content)),
+          summary: `Initial ${kind} blueprint`,
+          created_at: now,
+        },
+      ];
+    }
+  }
+  return true;
+}
+
+let backfilledPhase2 = false;
+for (const proj of DB.projects) {
+  if (backfillMissingPhase2ForProject(proj)) {
+    backfilledPhase2 = true;
+  }
+}
+if (backfilledPhase2) {
+  saveDb();
+}
 
 function createEmptyArtifacts(pid, name, description, answers = {}) {
   const baseline = normalizeModuleUpdates({
@@ -360,6 +417,12 @@ function createEmptyArtifacts(pid, name, description, answers = {}) {
   });
 
   const now = new Date().toISOString();
+  const derivedPhase2 = derivePhase2FromProject(
+    { id: pid, name, description },
+    Object.fromEntries(Object.entries(baseline).map(([k, v]) => [k, { content: v }]))
+  );
+  Object.assign(baseline, derivedPhase2);
+
   const artifacts = {};
   const versions = {};
   for (const kind of ARTIFACT_KINDS) {
@@ -1191,25 +1254,30 @@ app.put("/api/projects/:pid/artifacts/:kind", (req, res) => {
     });
   }
 
-  // Cross-artifact impact analysis
+  // Cross-artifact impact analysis (Phase 1 + Phase 2 downstream cascade)
   const impact = { artifacts: [], endpoints: 0, tasks: 0 };
-  if (req.params.kind === "schema") {
-    impact.artifacts.push("api");
+  const flagDownstream = (...kinds) => {
+    for (const k of kinds) {
+      if (arts[k] && k !== req.params.kind) {
+        impact.artifacts.push(k);
+        arts[k].artifact.needs_review = true;
+        arts[k].artifact.review_reason = `Upstream ${req.params.kind} changed (v${artObj.artifact.current_version})`;
+      }
+    }
+  };
+  if (req.params.kind === "brief") {
+    flagDownstream("spec", "architecture");
+  } else if (req.params.kind === "spec") {
+    flagDownstream("features", "flows");
+  } else if (req.params.kind === "features") {
+    flagDownstream("flows", "ui", "testing");
+  } else if (req.params.kind === "schema") {
     impact.endpoints = arts.api?.content?.endpoints?.length || 0;
-    if (arts.api) {
-      arts.api.artifact.needs_review = true;
-      arts.api.artifact.review_reason = `Upstream schema changed (v${artObj.artifact.current_version})`;
-    }
-  } else if (req.params.kind === "brief") {
-    impact.artifacts.push("spec", "architecture");
-    if (arts.spec) {
-      arts.spec.artifact.needs_review = true;
-      arts.spec.artifact.review_reason = `Upstream brief changed (v${artObj.artifact.current_version})`;
-    }
-    if (arts.architecture) {
-      arts.architecture.artifact.needs_review = true;
-      arts.architecture.artifact.review_reason = `Upstream brief changed (v${artObj.artifact.current_version})`;
-    }
+    flagDownstream("api", "security", "testing");
+  } else if (req.params.kind === "api") {
+    flagDownstream("security", "testing");
+  } else if (req.params.kind === "flows") {
+    flagDownstream("ui", "testing");
   }
 
   saveDb();
@@ -1294,6 +1362,18 @@ app.post("/api/projects/:pid/items/resolve-review", (req, res) => {
     if (t) {
       t.needs_review = false;
       t.review_reason = null;
+    }
+  } else if (arts && type === "feature") {
+    const f = arts.features?.content?.features?.find((x) => x.id === id);
+    if (f) {
+      f.needs_review = false;
+      f.review_reason = null;
+    }
+  } else if (arts && type === "test_case") {
+    const tc = arts.testing?.content?.cases?.find((x) => x.id === id);
+    if (tc) {
+      tc.needs_review = false;
+      tc.review_reason = null;
     }
   }
   saveDb();
@@ -1406,10 +1486,14 @@ app.get("/api/projects/:pid/export/markdown", (req, res) => {
 const WORKFLOWS = [
   { id: "spec", label: "Create product specification", target: "spec", requires: ["brief"] },
   { id: "scope_review", label: "Review feature scope", target: "features", requires: ["spec"] },
+  { id: "flows", label: "Generate user flows & branches", target: "flows", requires: ["spec", "features"] },
+  { id: "ui", label: "Generate UI/UX wireframes & tokens", target: "ui", requires: ["features", "flows"] },
   { id: "architecture", label: "Propose architecture", target: "architecture", requires: ["spec"] },
   { id: "schema", label: "Generate database schema", target: "schema", requires: ["spec", "features"] },
   { id: "api", label: "Generate API contracts", target: "api", requires: ["features", "schema"] },
+  { id: "security", label: "Run security controls & risk review", target: "security", requires: ["architecture", "api"] },
   { id: "tasks", label: "Create implementation tasks", target: "roadmap", requires: ["spec", "features"] },
+  { id: "testing", label: "Generate unit, integration & E2E test plan", target: "testing", requires: ["features", "api"] },
 ];
 
 app.get("/api/ai/workflows", authRequired, (req, res) => {

@@ -55,7 +55,7 @@ function StatusStrip() {
   const done = p.task_counts?.completed || 0;
   return (
     <div className="hidden xl:flex items-center gap-4 text-[12px] text-muted-foreground font-mono" data-testid="project-status-header">
-      <span data-testid="status-approved"><b className="text-foreground font-medium">{approved}</b>/7 approved</span>
+      <span data-testid="status-approved"><b className="text-foreground font-medium">{approved}</b>/{arts.length} approved</span>
       <span data-testid="status-tasks"><b className="text-foreground font-medium">{done}</b>/{p.tasks_total} tasks</span>
       {review > 0 && <span className="text-[hsl(var(--warning))]" data-testid="status-review">{review} need review</span>}
     </div>

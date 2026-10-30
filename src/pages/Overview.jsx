@@ -6,7 +6,7 @@ import { http, KIND_LABEL, KIND_PATH } from "@/lib/api";
 import { useProject } from "@/context/ProjectContext";
 import { PageError, PageLoading } from "@/components/common";
 
-const PIPE = ["brief", "spec", "features", "architecture", "schema", "api", "roadmap"];
+const PIPE = ["brief", "spec", "features", "flows", "ui", "architecture", "schema", "api", "security", "roadmap", "testing"];
 const NEXT_COPY = {
   brief: "Review the brief and its assumptions, then approve it.",
   spec: "Generate the product requirements from the approved brief.",
@@ -15,6 +15,10 @@ const NEXT_COPY = {
   schema: "Design the database schema for the MVP features.",
   api: "Generate API contracts from the approved schema.",
   roadmap: "Turn the approved blueprint into ordered tasks.",
+  flows: "Map role-based user journeys and failure branches.",
+  ui: "Review desktop & mobile wireframes, states, and design tokens.",
+  security: "Verify implemented vs planned security controls and threat mitigations.",
+  testing: "Review unit, API integration, and E2E test coverage.",
 };
 
 function Stage({ k, a, pid, i }) {
@@ -43,8 +47,8 @@ export default function Overview() {
   useEffect(() => { http.get(`/projects/${pid}/decisions`).then(({ data }) => setDecisions(data.slice(0, 5))); }, [pid, p?.updated_at]);
   if (error) return <PageError message={error} onRetry={refresh} />;
   if (!p) return <PageLoading />;
-  const next = PIPE.find((k) => p.artifacts[k].status !== "approved");
-  const review = PIPE.filter((k) => p.artifacts[k].needs_review);
+  const next = PIPE.find((k) => p.artifacts[k]?.status !== "approved");
+  const review = PIPE.filter((k) => p.artifacts[k]?.needs_review);
   const tc = p.task_counts || {};
   return (
     <div className="px-6 md:px-10 py-10 max-w-6xl">
@@ -54,7 +58,7 @@ export default function Overview() {
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground leading-relaxed">{p.description}</p>
       </div>
       <div className="mt-12 flex overflow-x-auto pb-2" data-testid="blueprint-pipeline">
-        {PIPE.map((k, i) => <Stage key={k} k={k} a={p.artifacts[k]} pid={pid} i={i} />)}
+        {PIPE.map((k, i) => <Stage key={k} k={k} a={p.artifacts[k] || { status: "empty", current_version: 0 }} pid={pid} i={i} />)}
       </div>
       {next ? (
         <div className="mt-10 flex flex-col gap-4 rounded-lg bg-accent px-6 py-5 sm:flex-row sm:items-center fade-up" data-testid="next-step-card">

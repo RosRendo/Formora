@@ -55,6 +55,10 @@ export const KIND_LABEL = {
   schema: "Database schema",
   api: "API catalog",
   roadmap: "Roadmap",
+  flows: "User flows",
+  ui: "UI/UX blueprint",
+  security: "Security plan",
+  testing: "Testing center",
   docs: "Module docs (.md)",
 };
 
@@ -66,5 +70,9 @@ export const KIND_PATH = {
   schema: "database",
   api: "api",
   roadmap: "roadmap",
+  flows: "flows",
+  ui: "ui",
+  security: "security",
+  testing: "testing",
   docs: "docs",
 };

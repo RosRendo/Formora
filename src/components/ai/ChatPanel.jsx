@@ -19,6 +19,10 @@ import {
   PanelRightClose,
   Settings2,
   Wand2,
+  Route as RouteIcon,
+  PenTool,
+  ShieldCheck,
+  FlaskConical,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -35,6 +39,10 @@ const MODULE_STYLE = {
   schema: { icon: Database, tint: "#10b981", tag: "Database ERD" },
   api: { icon: Braces, tint: "#0ea5e9", tag: "REST API" },
   roadmap: { icon: MapIcon, tint: "#14b8a6", tag: "Roadmap" },
+  flows: { icon: RouteIcon, tint: "#6366f1", tag: "User Flows" },
+  ui: { icon: PenTool, tint: "#d97706", tag: "UI/UX Wireframes" },
+  security: { icon: ShieldCheck, tint: "#dc2626", tag: "Security Plan" },
+  testing: { icon: FlaskConical, tint: "#059669", tag: "Testing Center" },
   docs: { icon: FolderCode, tint: "#ec4899", tag: "Separate .md" },
 };
 
@@ -46,6 +54,10 @@ const TARGET_PILLS = [
   { id: "features", label: "Features" },
   { id: "spec", label: "Requirements" },
   { id: "roadmap", label: "Roadmap" },
+  { id: "flows", label: "Flows" },
+  { id: "ui", label: "UI/UX" },
+  { id: "security", label: "Security" },
+  { id: "testing", label: "Testing" },
   { id: "docs", label: "Docs (.md)" },
 ];
 

@@ -474,6 +474,98 @@ ${d.reasoning ? `- **Reasoning**: ${d.reasoning}` : ""}`).join("\n\n") || "_No a
 ${notesBody}
 `;
 
+  // 10-13. Phase 2 Engineering Modules (Flows, UI/UX, Security, Testing)
+  const flowsList = artifacts?.flows?.content?.flows || [];
+  const flowsMd = withNote(`# 10 · User Flows — ${p.name || "Untitled"}
+
+> **Status**: \`${artifacts?.flows?.artifact?.status || "draft"}\` · **Version**: \`v${artifacts?.flows?.artifact?.current_version || 1}\` · **Updated**: ${today}
+
+${flowsList
+  .map(
+    (fl, i) => `## ${i + 1}. ${fl.title} (\`${fl.role || "Member"}\`)
+- **Entry Point**: \`${fl.entry_point || "/"}\`
+- **Goal**: ${fl.goal || "—"}
+- **Success Outcome**: ${fl.success_outcome || "—"}
+
+### Steps
+${(fl.steps || []).map((st, idx) => `${idx + 1}. **[${st.actor || "User"}]** ${st.action} _(${st.screen || "Screen"})_ → ${st.system_response}`).join("\n") || "_No steps defined._"}
+
+### Failure & Edge Branches
+${(fl.branches || []).map((br) => `- **If ${br.condition}**: ${br.handling}`).join("\n") || "_No failure branches defined._"}`
+  )
+  .join("\n\n---\n\n") || "_No user flows defined yet._"}`, "flows");
+
+  const uiContent = artifacts?.ui?.content || {};
+  const uiSitemap = uiContent.sitemap || [];
+  const uiScreens = uiContent.screens || [];
+  const uiTokens = uiContent.tokens || {};
+  const uiMd = withNote(`# 11 · UI/UX Blueprint — ${p.name || "Untitled"}
+
+> **Status**: \`${artifacts?.ui?.artifact?.status || "draft"}\` · **Version**: \`v${artifacts?.ui?.artifact?.current_version || 1}\` · **Updated**: ${today}
+
+## Design System Tokens
+- **Aesthetic Direction**: ${uiTokens.aesthetic || "Precision editorial workspace"}
+- **Palette**: Primary \`${uiTokens.primary_color || "#18181b"}\` · Accent \`${uiTokens.accent_color || "#2563eb"}\` · Surface \`${uiTokens.surface_color || "#fafafa"}\`
+- **Typography**: Heading \`${uiTokens.heading_font || "IBM Plex Sans"}\` · Body \`${uiTokens.body_font || "IBM Plex Sans"}\` · Mono \`${uiTokens.mono_font || "JetBrains Mono"}\`
+- **Geometry**: Radius \`${uiTokens.radius || "6px"}\` · Density \`${uiTokens.density || "Compact"}\`
+
+## Sitemap Hierarchy
+| Route | Label | Auth | Role | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+${uiSitemap.map((r) => `| \`${r.path}\` | ${r.label} | ${r.auth ? "Protected" : "Public"} | ${r.role || "All"} | ${r.purpose || ""} |`).join("\n") || "| `/` | Home | Public | Visitor | Entry |"}
+
+## Screen Specifications & Mandatory States
+${uiScreens
+  .map(
+    (sc) => `### ${sc.name} (\`${sc.route}\`)
+- **Role**: ${sc.role || "Member"} · **Layout**: \`${sc.layout || "sidebar_table"}\`
+- **Purpose**: ${sc.purpose || ""}
+- **Components**: ${(sc.components || []).map((c) => `\`${c}\``).join(", ") || "—"}
+- **Loading State**: ${sc.states?.loading || "—"}
+- **Empty State**: ${sc.states?.empty || "—"}
+- **Error State**: ${sc.states?.error || "—"}
+- **Success State**: ${sc.states?.success || "—"}`
+  )
+  .join("\n\n") || "_No screens defined yet._"}`, "ui");
+
+  const secContent = artifacts?.security?.content || {};
+  const secControls = secContent.controls || [];
+  const secThreats = secContent.threats || [];
+  const securityMd = withNote(`# 12 · Security Plan — ${p.name || "Untitled"}
+
+> **Status**: \`${artifacts?.security?.artifact?.status || "draft"}\` · **Version**: \`v${artifacts?.security?.artifact?.current_version || 1}\` · **Updated**: ${today}
+
+## Posture Summary
+${secContent.posture_summary || "_No posture summary yet._"}
+
+## Security Controls Matrix
+| Category | Control | Severity | Status | Verification |
+| :--- | :--- | :--- | :--- | :--- |
+${secControls.map((c) => `| **${c.category}** | ${c.title} | \`${c.severity}\` | \`${c.status}\` | ${c.verification || c.mitigation || ""} |`).join("\n") || "| — | — | — | — | — |"}
+
+## Threat Review & Mitigations
+${secThreats.map((t) => `- **[${(t.severity || "high").toUpperCase()}] ${t.risk}** — _Vector_: ${t.vector || "N/A"} → _Mitigation_: ${t.mitigation}`).join("\n") || "_No threats cataloged._"}`, "security");
+
+  const testContent = artifacts?.testing?.content || {};
+  const testCases = testContent.cases || [];
+  const testingMd = withNote(`# 13 · Testing Plan — ${p.name || "Untitled"}
+
+> **Status**: \`${artifacts?.testing?.artifact?.status || "draft"}\` · **Version**: \`v${artifacts?.testing?.artifact?.current_version || 1}\` · **Updated**: ${today}
+
+## Testing Strategy
+${testContent.strategy || "_Pragmatic Testing Trophy across Unit, Integration, and E2E._"}
+- **Runners**: Unit \`${testContent.runner_stack?.unit || "Vitest"}\` · Integration \`${testContent.runner_stack?.integration || "Vitest + Supertest"}\` · E2E \`${testContent.runner_stack?.e2e || "Playwright"}\`
+
+## Test Suites (${testCases.length} specs)
+${testCases
+  .map(
+    (tc) => `### [${(tc.level || "integration").toUpperCase()}] ${tc.title}
+- **Target**: \`${tc.target || tc.endpoint_path || "Core"}\` · **Status**: \`${tc.status || "ready"}\`
+- **Steps**: ${(tc.steps || []).join(" → ") || "—"}
+- **Expected**: ${tc.expected || "Passes assertions"}`
+  )
+  .join("\n\n") || "_No test cases defined yet._"}`, "testing");
+
   return [
     {
       kind: "brief",
@@ -573,6 +665,50 @@ ${notesBody}
       countLabel: "Domain notes",
       markdown: notesMd,
       notes: customDocs?.notes?.notes || "",
+    },
+    {
+      kind: "flows",
+      filename: "10-user-flows.md",
+      title: "User Flows",
+      visualPath: "flows",
+      status: artifacts?.flows?.artifact?.status || "draft",
+      version: artifacts?.flows?.artifact?.current_version || 1,
+      countLabel: `${flowsList.length} flows`,
+      markdown: flowsMd,
+      notes: customDocs?.flows?.notes || "",
+    },
+    {
+      kind: "ui",
+      filename: "11-ui-blueprint.md",
+      title: "UI/UX Blueprint",
+      visualPath: "ui",
+      status: artifacts?.ui?.artifact?.status || "draft",
+      version: artifacts?.ui?.artifact?.current_version || 1,
+      countLabel: `${uiScreens.length} screens · ${uiSitemap.length} routes`,
+      markdown: uiMd,
+      notes: customDocs?.ui?.notes || "",
+    },
+    {
+      kind: "security",
+      filename: "12-security-plan.md",
+      title: "Security Plan",
+      visualPath: "security",
+      status: artifacts?.security?.artifact?.status || "draft",
+      version: artifacts?.security?.artifact?.current_version || 1,
+      countLabel: `${secControls.length} controls`,
+      markdown: securityMd,
+      notes: customDocs?.security?.notes || "",
+    },
+    {
+      kind: "testing",
+      filename: "13-testing-plan.md",
+      title: "Testing Center",
+      visualPath: "testing",
+      status: artifacts?.testing?.artifact?.status || "draft",
+      version: artifacts?.testing?.artifact?.current_version || 1,
+      countLabel: `${testCases.length} test specs`,
+      markdown: testingMd,
+      notes: customDocs?.testing?.notes || "",
     },
   ];
 }

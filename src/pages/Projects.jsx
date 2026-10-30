@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { http, errMsg } from "@/lib/api";
 import { EmptyState, PageError, PageHeader, PageLoading } from "@/components/common";
 
-const STAGES = ["brief", "spec", "features", "architecture", "schema", "api", "roadmap"];
+const STAGES = ["brief", "spec", "features", "flows", "ui", "architecture", "schema", "api", "security", "roadmap", "testing"];
 
 export function ProjectRow({ p }) {
   const pct = p.tasks_total ? Math.round((p.tasks_done / p.tasks_total) * 100) : 0;
@@ -20,7 +20,7 @@ export function ProjectRow({ p }) {
         </div>
         <p className="text-xs text-muted-foreground truncate mt-0.5">{p.description}</p>
       </div>
-      <div className="col-span-6 md:col-span-3 flex items-center gap-1" title={`${p.approved} of 7 artifacts approved`}>
+      <div className="col-span-6 md:col-span-3 flex items-center gap-1" title={`${p.approved} of ${STAGES.length} artifacts approved`}>
         {STAGES.map((s, i) => <span key={s} className={`h-1.5 flex-1 rounded-full ${i < p.approved ? "bg-primary" : i < p.artifacts ? "bg-primary/25" : "bg-border"}`} />)}
       </div>
       <div className="col-span-4 md:col-span-3 text-xs text-muted-foreground font-mono">

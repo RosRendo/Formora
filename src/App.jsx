@@ -21,6 +21,10 @@ import DatabaseDesigner from "@/pages/DatabaseDesigner";
 import ApiExplorer from "@/pages/ApiExplorer";
 import ModuleDocs from "@/pages/ModuleDocs";
 import Roadmap from "@/pages/Roadmap";
+import UserFlows from "@/pages/UserFlows";
+import UiBlueprint from "@/pages/UiBlueprint";
+import SecurityPlan from "@/pages/SecurityPlan";
+import TestingCenter from "@/pages/TestingCenter";
 import DecisionLog from "@/pages/DecisionLog";
 import ProjectSettings from "@/pages/ProjectSettings";
 import LaterPhase from "@/pages/LaterPhase";
@@ -59,12 +63,16 @@ function AppRouter() {
         <Route path="brief" element={<Brief />} />
         <Route path="requirements" element={<Requirements />} />
         <Route path="features" element={<Features />} />
+        <Route path="flows" element={<UserFlows />} />
+        <Route path="ui" element={<UiBlueprint />} />
         <Route path="stack" element={<TechStack />} />
         <Route path="architecture" element={<Architecture />} />
         <Route path="database" element={<DatabaseDesigner />} />
         <Route path="api" element={<ApiExplorer />} />
         <Route path="docs" element={<ModuleDocs />} />
+        <Route path="security" element={<SecurityPlan />} />
         <Route path="roadmap" element={<Roadmap />} />
+        <Route path="testing" element={<TestingCenter />} />
         <Route path="decisions" element={<DecisionLog />} />
         <Route path="settings" element={<ProjectSettings />} />
         <Route path=":later" element={<LaterPhase />} />

@@ -3,6 +3,14 @@
 // cross-linked structured panels: Brief, Requirements, Features, Architecture, Database, API, Roadmap, and Separate .md Docs.
 
 import crypto from "crypto";
+import {
+  buildFlows,
+  buildUiBlueprint,
+  buildSecurityPlan,
+  buildTestingPlan,
+  normalizePhase2Updates,
+  summarizePhase2Placements,
+} from "./phase2Architect.js";
 
 const uid = () => crypto.randomUUID();
 
@@ -44,6 +52,10 @@ export const MODULE_META = {
   schema: { label: "Database Designer", path: "database", docFile: "05-database.md" },
   api: { label: "API Explorer", path: "api", docFile: "06-api.md" },
   roadmap: { label: "Implementation Roadmap", path: "roadmap", docFile: "07-roadmap.md" },
+  flows: { label: "User Flows", path: "flows", docFile: "10-user-flows.md" },
+  ui: { label: "UI/UX Blueprint", path: "ui", docFile: "11-ui-blueprint.md" },
+  security: { label: "Security Plan", path: "security", docFile: "12-security-plan.md" },
+  testing: { label: "Testing Center", path: "testing", docFile: "13-testing-plan.md" },
   docs: { label: "Module Docs (.md)", path: "docs", docFile: "09-architect-notes.md" },
 };
 
@@ -1511,7 +1523,7 @@ function detectTargetModules(message, explicitTargets, isFreshProject) {
   if (isFullIdea && !/\b(only|just)\s+(database|schema|table|api|endpoint|architecture|roadmap|doc)\b/i.test(m)) {
     return {
       mode: "full",
-      targets: new Set(["brief", "spec", "features", "architecture", "schema", "api", "roadmap", "docs"]),
+      targets: new Set(["brief", "spec", "features", "flows", "ui", "architecture", "schema", "api", "security", "roadmap", "testing", "docs"]),
     };
   }
 
@@ -1537,6 +1549,18 @@ function detectTargetModules(message, explicitTargets, isFreshProject) {
   }
   if (/\b(roadmap|task|tasks|milestone|sprint|todo|deliverable)\b/i.test(m)) {
     targets.add("roadmap");
+  }
+  if (/\b(flow|flows|journey|journeys|onboarding|step-by-step|branch|branches)\b/i.test(m)) {
+    targets.add("flows");
+  }
+  if (/\b(ui|ux|wireframe|wireframes|screen|screens|sitemap|token|tokens|palette|typography|layout|mobile preview)\b/i.test(m)) {
+    targets.add("ui");
+  }
+  if (/\b(security|idor|owasp|threat|threats|rate limit|secret|secrets|csrf|xss|audit|backup|encryption|control|controls)\b/i.test(m)) {
+    targets.add("security");
+  }
+  if (/\b(test|tests|testing|vitest|playwright|e2e|unit test|integration test|coverage|qa|spec\.ts)\b/i.test(m)) {
+    targets.add("testing");
   }
   if (/\b(md|markdown|doc|docs|note|notes|readme|guide)\b/i.test(m)) {
     targets.add("docs");
@@ -1808,6 +1832,7 @@ export function normalizeModuleUpdates(updates, existingArtifacts = {}) {
     };
   }
 
+  Object.assign(out, normalizePhase2Updates(updates, existingArtifacts));
   if (updates.docs) {
     out.docs = typeof updates.docs === "string" ? { notes: updates.docs } : updates.docs;
   }
@@ -1892,6 +1917,7 @@ export function summarizePlacements(normalizedUpdates) {
     });
   }
 
+  placements.push(...summarizePhase2Placements(normalizedUpdates, MODULE_META));
   if (placements.length > 0 || normalizedUpdates.docs) {
     placements.push({
       kind: "docs",
@@ -2198,6 +2224,20 @@ function runSemanticArchitect({ message, project, existingArtifacts, targets, mo
     }
   }
 
+  const activeBrief = updates.brief || existingArtifacts.brief?.content || { name: projectName, auth: tech.auth, payments: tech.payments, database: tech.database };
+  const activeSpec = updates.spec || existingArtifacts.spec?.content || { roles: archetype.roles };
+  if (targets.has("flows")) {
+    updates.flows = buildFlows({ projectName, features: activeFeatures, schema: activeSchema, endpoints: activeEndpoints, spec: activeSpec, brief: activeBrief });
+  }
+  if (targets.has("ui")) {
+    updates.ui = buildUiBlueprint({ projectName, features: activeFeatures, schema: activeSchema, spec: activeSpec, brief: activeBrief });
+  }
+  if (targets.has("security")) {
+    updates.security = buildSecurityPlan({ projectName, schema: activeSchema, endpoints: activeEndpoints, brief: activeBrief });
+  }
+  if (targets.has("testing")) {
+    updates.testing = buildTestingPlan({ projectName, features: activeFeatures, endpoints: activeEndpoints, schema: activeSchema });
+  }
   if (targets.has("docs")) {
     updates.docs = {
       notes: `### Architectural Separation Notes (${projectName})

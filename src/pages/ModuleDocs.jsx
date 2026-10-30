@@ -16,6 +16,10 @@ import {
   Map as MapIcon,
   ScrollText,
   Sparkles,
+  Route as RouteIcon,
+  PenTool,
+  ShieldCheck,
+  FlaskConical,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -35,6 +39,10 @@ const DOC_ICONS = {
   roadmap: MapIcon,
   decisions: ScrollText,
   notes: Sparkles,
+  flows: RouteIcon,
+  ui: PenTool,
+  security: ShieldCheck,
+  testing: FlaskConical,
 };
 
 function InlineMd({ text }) {
