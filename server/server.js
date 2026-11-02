@@ -18,6 +18,7 @@ import {
 import { runArchitectChat, normalizeModuleUpdates } from "./aiArchitect.js";
 import { derivePhase2FromProject } from "./phase2Architect.js";
 import { deriveDeploymentFromProject } from "./phase3Architect.js";
+import { getPublicAiCapabilities, testLlmConnection } from "./llmProviders.js";
 import {
   PLANS,
   verifyLemonSqueezySignature,
@@ -127,7 +128,7 @@ function createInitialSeedState() {
     users: [
       {
         ...SEED_USER,
-        plan: "free",
+        plan: "pro",
         password_hash: bcrypt.hashSync(SEED_USER.password, 10),
         created_at: now,
         updated_at: now,
@@ -256,6 +257,138 @@ for (const proj of DB.projects) {
 if (backfilledPhase2) {
   saveDb();
 }
+
+// Ensure demo account (demo@blueprintos.dev / Blueprint123!) and its sample workspace always exist
+function ensureDemoAccountAndSample() {
+  const now = new Date().toISOString();
+  let demoUser = DB.users.find(
+    (u) => u.id === SEED_USER.id || u.email?.toLowerCase() === SEED_USER.email.toLowerCase()
+  );
+
+  if (!demoUser) {
+    demoUser = {
+      id: SEED_USER.id,
+      email: SEED_USER.email.toLowerCase(),
+      name: SEED_USER.name,
+      picture: null,
+      plan: "pro",
+      auth_provider: "password",
+      password_hash: bcrypt.hashSync(SEED_USER.password, 10),
+      created_at: now,
+      updated_at: now,
+    };
+    DB.users.push(demoUser);
+  } else {
+    demoUser.name = SEED_USER.name;
+    demoUser.auth_provider = "password";
+    demoUser.password_hash = bcrypt.hashSync(SEED_USER.password, 10);
+    demoUser.plan = demoUser.plan || "pro";
+  }
+
+  // Ensure sample project exists for demoUser
+  let sampleProj = DB.projects.find(
+    (p) => p.id === SEED_PROJECT.id || (p.user_id === demoUser.id && p.is_sample)
+  );
+
+  if (!sampleProj) {
+    sampleProj = {
+      ...SEED_PROJECT,
+      id: SEED_PROJECT.id,
+      user_id: demoUser.id,
+      is_sample: true,
+      created_at: now,
+      updated_at: now,
+    };
+    DB.projects.unshift(sampleProj);
+  } else {
+    sampleProj.user_id = demoUser.id;
+    sampleProj.is_sample = true;
+  }
+
+  // Ensure artifacts exist for sample project
+  if (!DB.artifacts[sampleProj.id] || Object.keys(DB.artifacts[sampleProj.id]).length === 0) {
+    DB.artifacts[sampleProj.id] = JSON.parse(JSON.stringify(SEED_ARTIFACTS));
+  }
+
+  // Ensure artifact versions exist
+  if (!DB.artifact_versions[sampleProj.id]) {
+    DB.artifact_versions[sampleProj.id] = {};
+  }
+  for (const [kind, art] of Object.entries(DB.artifacts[sampleProj.id])) {
+    if (
+      art?.content &&
+      (!DB.artifact_versions[sampleProj.id][kind] || !DB.artifact_versions[sampleProj.id][kind].length)
+    ) {
+      DB.artifact_versions[sampleProj.id][kind] = [
+        {
+          version_number: 1,
+          content: JSON.parse(JSON.stringify(art.content)),
+          summary: `Initial ${kind} blueprint approved`,
+          created_at: now,
+        },
+      ];
+    }
+  }
+
+  // Ensure decisions exist
+  if (!DB.decisions[sampleProj.id] || DB.decisions[sampleProj.id].length === 0) {
+    DB.decisions[sampleProj.id] = JSON.parse(JSON.stringify(SEED_DECISIONS));
+  }
+
+  // Ensure AI jobs exist
+  if (!DB.ai_jobs[sampleProj.id] || DB.ai_jobs[sampleProj.id].length === 0) {
+    DB.ai_jobs[sampleProj.id] = [
+      {
+        id: "job-seed-api",
+        workflow: "api",
+        workflow_id: "api",
+        target_kind: "api",
+        status: "applied",
+        input_chars: 1840,
+        output_chars: 4120,
+        duration_ms: 2100,
+        notes: "Generated 7 REST endpoints matching book club organizer criteria.",
+        created_at: now,
+      },
+    ];
+  }
+
+  // Ensure chats exist
+  if (!DB.chats[sampleProj.id] || DB.chats[sampleProj.id].length === 0) {
+    DB.chats[sampleProj.id] = [
+      {
+        id: "msg-seed-1",
+        role: "user",
+        content: "Build Shelfmate: a book club organizer to pick books, schedule meetups, and keep discussion notes.",
+        targets: ["auto"],
+        created_at: now,
+      },
+      {
+        id: "msg-seed-2",
+        role: "assistant",
+        content: "Decomposed and placed into Database ERD, REST API, Architecture, User Flows, Wireframes, Security, and Testing.",
+        engine: "Blueprint Engine",
+        applied: true,
+        placements: [
+          { kind: "schema", label: "Database Schema", path: "database", applied: true },
+          { kind: "api", label: "REST API Contracts", path: "api", applied: true },
+          { kind: "architecture", label: "Architecture Topology", path: "architecture", applied: true },
+          { kind: "flows", label: "User Flows", path: "flows", applied: true },
+          { kind: "ui", label: "UI Wireframes", path: "ui", applied: true },
+          { kind: "security", label: "Security Plan", path: "security", applied: true },
+          { kind: "testing", label: "Testing Center", path: "testing", applied: true },
+          { kind: "deployment", label: "Deployment Center", path: "deployment", applied: true },
+        ],
+        created_at: now,
+      },
+    ];
+  }
+
+  backfillMissingPhase2ForProject(sampleProj);
+}
+
+ensureDemoAccountAndSample();
+saveDb();
 
 function createEmptyArtifacts(pid, name, description, answers = {}) {
   const baseline = normalizeModuleUpdates({
@@ -617,17 +750,6 @@ function requireProjectAccess(req, res, next) {
     return next();
   }
 
-  if (p.is_sample) {
-    const isReadOnlyRequest = req.method === "GET" || req.path === "/schema/preview";
-    if (isReadOnlyRequest) {
-      req.project = p;
-      return next();
-    }
-    return res.status(403).json({
-      detail: "Sample blueprint is read-only for guest accounts. Create your own project to edit.",
-    });
-  }
-
   return res.status(404).json({ detail: "Project not found" });
 }
 
@@ -812,7 +934,7 @@ app.post("/api/auth/refresh", (req, res) => {
 app.get("/api/projects", authRequired, (req, res) => {
   const includeArchived = req.query.include_archived === "true";
   const list = DB.projects
-    .filter((p) => (p.user_id === req.user.id || p.is_sample) && (includeArchived || p.status !== "archived"))
+    .filter((p) => p.user_id === req.user.id && (includeArchived || p.status !== "archived"))
     .map((p) => {
       const arts = DB.artifacts[p.id] || {};
       const tasks = arts.roadmap?.content?.tasks || [];
@@ -1058,7 +1180,8 @@ app.get("/api/projects/:pid/chat", (req, res) => {
   const list = DB.chats[req.params.pid] || [];
   res.json({
     messages: list,
-    has_env_llm: Boolean(process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY),
+    has_env_llm: getPublicAiCapabilities().server_ai.configured,
+    ai_capabilities: getPublicAiCapabilities(),
   });
 });
 
@@ -1513,6 +1636,25 @@ app.get("/api/ai/workflows", authRequired, (req, res) => {
   res.json(WORKFLOWS);
 });
 
+const aiTestLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  max: 12,
+  detail: "Too many AI connection tests. Please wait a minute.",
+});
+
+app.get("/api/ai/providers", authRequired, (req, res) => {
+  res.json(getPublicAiCapabilities());
+});
+
+app.post("/api/ai/test", authRequired, aiTestLimiter, async (req, res) => {
+  try {
+    const result = await testLlmConnection(req.body?.llm_config || null);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ ok: false, detail: err.message || "Failed to connect to AI endpoint" });
+  }
+});
+
 app.get("/api/projects/:pid/ai/jobs", (req, res) => {
   const jobs = DB.ai_jobs[req.params.pid] || [];
   res.json(jobs);
@@ -1541,6 +1683,7 @@ app.post("/api/projects/:pid/ai/:workflow", async (req, res) => {
     existingArtifacts: arts,
     explicitTargets: [wf.target],
     isFreshProject: false,
+    llmConfig: req.body?.llm_config || null,
   });
 
   const proposedOutput = plan.updates[wf.target] || arts[wf.target]?.content || {};
@@ -1551,6 +1694,7 @@ app.post("/api/projects/:pid/ai/:workflow", async (req, res) => {
     workflow: wf.id,
     workflow_id: wf.id,
     target_kind: wf.target,
+    engine: plan.engine,
     status: "proposed",
     instructions,
     output: proposedOutput,
@@ -1638,7 +1782,6 @@ app.get("/api/billing/subscription", authRequired, (req, res) => {
     },
     limits: planConfig.limits,
     transactions: userTransactions,
-    simulation_mode: !process.env.LEMONSQUEEZY_API_KEY,
   });
 });
 
@@ -1684,39 +1827,6 @@ app.post("/api/billing/webhook/lemonsqueezy", async (req, res) => {
   }
 });
 
-app.post("/api/billing/dev-simulate-webhook", authRequired, (req, res) => {
-  if (IS_PROD) {
-    return res.status(403).json({ detail: "Webhook simulator is disabled in production" });
-  }
-
-  const { event_name = "subscription_created", plan = "pro", interval = "monthly" } = req.body || {};
-  const mockPayload = {
-    meta: {
-      event_name,
-      event_id: `sim_evt_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-      custom_data: {
-        user_id: req.user.id,
-        plan,
-        interval,
-      },
-    },
-    data: {
-      id: `sim_sub_${Date.now()}`,
-      attributes: {
-        customer_id: `sim_cust_${req.user.id}`,
-        user_email: req.user.email,
-        status: event_name === "subscription_cancelled" ? "cancelled" : "active",
-        total: interval === "yearly" ? 19000 : 1900,
-        currency: "USD",
-        renews_at: new Date(Date.now() + (interval === "yearly" ? 365 : 30) * 86400000).toISOString(),
-      },
-    },
-  };
-
-  const result = handleLemonSqueezyWebhookEvent(DB, mockPayload, saveDb);
-  res.json({ success: true, simulated_event: event_name, result });
-});
-
 app.get("/api/billing/portal", authRequired, (req, res) => {
   if (req.user.subscription?.customer_id && process.env.LEMONSQUEEZY_API_KEY) {
     return res.json({ portal_url: "https://app.lemonsqueezy.com/my-orders" });
@@ -1735,10 +1845,10 @@ app.get("/api/health", (req, res) => {
 
 // --- Production Static SPA Bundle Serving ---
 const DIST_DIR = path.resolve(__dirname, "..", "dist");
-if (IS_PROD && fs.existsSync(DIST_DIR)) {
+if (fs.existsSync(DIST_DIR)) {
   app.use(express.static(DIST_DIR));
   app.use((req, res, next) => {
-    if (req.method === "GET" && !req.path.startsWith("/api")) {
+    if ((req.method === "GET" || req.method === "HEAD") && !req.path.startsWith("/api")) {
       return res.sendFile(path.join(DIST_DIR, "index.html"));
     }
     next();
