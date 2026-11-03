@@ -7,31 +7,108 @@ import { Label } from "@/components/ui/label";
 import { http, errMsg } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
-const STEPS = ["Idea", "Requirements", "Design", "Architecture", "Database", "API", "Roadmap", "Launch"];
+const STAGES = [
+  "Brief",
+  "PRD",
+  "Features",
+  "Flows",
+  "UI/UX",
+  "Architecture",
+  "Database",
+  "API",
+  "Security",
+  "Roadmap",
+  "Testing",
+  "Deploy",
+];
 
 function BlueprintVisual() {
   return (
-    <div className="relative hidden lg:flex flex-1 flex-col justify-between overflow-hidden bg-[#0b0d14] p-12 text-white">
-      <div className="absolute inset-0 opacity-[0.18]" style={{ backgroundImage: "linear-gradient(#6366f1 1px, transparent 1px), linear-gradient(90deg, #6366f1 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
-      <div className="absolute inset-0" style={{ background: "radial-gradient(60% 50% at 70% 40%, transparent, #0b0d14 85%)" }} />
-      <div className="relative text-[11px] font-mono uppercase tracking-[0.2em] text-indigo-300/80">Formora / Blueprint OS</div>
+    <div className="relative hidden lg:flex flex-1 flex-col justify-between overflow-hidden border-l border-zinc-800 bg-[#09090b] p-12 text-zinc-100">
+      <div
+        className="absolute inset-0 opacity-[0.16]"
+        style={{
+          backgroundImage:
+            "linear-gradient(#27272a 1px, transparent 1px), linear-gradient(90deg, #27272a 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "radial-gradient(65% 55% at 65% 42%, transparent, #09090b 88%)",
+        }}
+      />
+
+      <div className="relative flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.18em] text-zinc-400">
+        <span>Formora // Blueprint OS</span>
+        <span>12 Modules &middot; SQL + .MD</span>
+      </div>
+
       <div className="relative space-y-8">
         <svg viewBox="0 0 520 240" className="w-full max-w-[520px]" aria-hidden>
-          {[[30, 100, "web"], [190, 40, "api"], [190, 160, "auth"], [350, 40, "postgres"], [350, 160, "email"]].map(([x, y, t], i) => (
-            <g key={t} style={{ animation: `fadeUp .5s ${i * 0.12}s both` }}>
-              <rect x={x} y={y} width="130" height="44" rx="6" fill="#111318" stroke="#6366f1" strokeOpacity=".5" />
-              <text x={x + 12} y={y + 27} fill="#c7d2fe" fontSize="12" fontFamily="JetBrains Mono">{t}</text>
+          {[
+            [24, 98, "01 prompt"],
+            [188, 36, "07 postgres_ddl"],
+            [188, 98, "08 rest_openapi"],
+            [188, 160, "06 topology"],
+            [356, 66, "09 security"],
+            [356, 132, "12 deploy_ci"],
+          ].map(([x, y, t], i) => (
+            <g key={t} style={{ animation: `fadeUp .45s ${i * 0.08}s both` }}>
+              <rect
+                x={x}
+                y={y}
+                width="136"
+                height="42"
+                rx="4"
+                fill="#111113"
+                stroke="#3f3f46"
+              />
+              <text
+                x={x + 12}
+                y={y + 25}
+                fill="#e4e4e7"
+                fontSize="11.5"
+                fontFamily="JetBrains Mono, monospace"
+              >
+                {t}
+              </text>
             </g>
           ))}
-          {[[160, 122, 190, 62], [160, 122, 190, 182], [320, 62, 350, 62], [320, 182, 350, 182]].map(([a, b, c, d], i) => (
-            <path key={i} d={`M${a} ${b} C ${a + 20} ${b}, ${c - 20} ${d}, ${c} ${d}`} stroke="#818cf8" strokeOpacity=".7" fill="none" strokeDasharray="4 4" />
+          {[
+            [160, 119, 188, 57],
+            [160, 119, 188, 119],
+            [160, 119, 188, 181],
+            [324, 57, 356, 87],
+            [324, 119, 356, 87],
+            [324, 181, 356, 153],
+          ].map(([a, b, c, d], i) => (
+            <path
+              key={i}
+              d={`M${a} ${b} C ${a + 16} ${b}, ${c - 16} ${d}, ${c} ${d}`}
+              stroke="#71717a"
+              strokeOpacity=".75"
+              fill="none"
+              strokeDasharray="3 3"
+            />
           ))}
         </svg>
-        <h2 className="text-4xl font-semibold leading-[1.1] tracking-tight max-w-md">Decide before you build.</h2>
-        <p className="text-sm text-indigo-100/60 max-w-sm leading-relaxed">Turn an idea into an approved, versioned blueprint — requirements, architecture, schema, API and a dependency-aware task list.</p>
+
+        <h2 className="max-w-md text-4xl font-semibold leading-[1.08] tracking-tight text-white">
+          Decide before you build.
+        </h2>
+        <p className="max-w-sm text-sm leading-relaxed text-zinc-400">
+          Turn a plain-English system prompt into versioned requirements, relational schemas, API contracts, security controls, and deployment specs.
+        </p>
       </div>
-      <div className="relative flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-mono text-indigo-200/50">
-        {STEPS.map((s, i) => <span key={s}>{String(i + 1).padStart(2, "0")} {s}</span>)}
+
+      <div className="relative flex flex-wrap gap-x-4 gap-y-1.5 font-mono text-[10.5px] text-zinc-500">
+        {STAGES.map((s, i) => (
+          <span key={s}>
+            {String(i + 1).padStart(2, "0")} {s}
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -44,7 +121,9 @@ export default function Login() {
   const [searchParams] = useSearchParams();
 
   const selectedPlan = searchParams.get("plan");
-  const [mode, setMode] = useState(searchParams.get("mode") === "register" ? "register" : "login");
+  const [mode, setMode] = useState(
+    searchParams.get("mode") === "register" ? "register" : "login"
+  );
   const [form, setForm] = useState({ email: "", password: "", name: "" });
   const [err, setErr] = useState(loc.state?.error || "");
   const [busy, setBusy] = useState(false);
@@ -64,10 +143,15 @@ export default function Login() {
     setBusy(true);
     setErr("");
     try {
-      const { data } = await http.post(`/auth/${mode === "login" ? "login" : "register"}`, form);
+      const { data } = await http.post(
+        `/auth/${mode === "login" ? "login" : "register"}`,
+        form
+      );
       setUser(data);
       nav(targetDestination);
-    } catch (ex) { setErr(errMsg(ex)); }
+    } catch (ex) {
+      setErr(errMsg(ex));
+    }
     setBusy(false);
   };
 
@@ -80,7 +164,7 @@ export default function Login() {
         password: "Blueprint123!",
       });
       setUser(data);
-      nav("/dashboard");
+      nav(targetDestination);
     } catch (ex) {
       setErr(errMsg(ex));
     }
@@ -109,9 +193,13 @@ export default function Login() {
         </div>
 
         <div className="mb-8 flex items-center gap-2">
-          <div className="grid h-6 w-6 place-items-center rounded-[5px] bg-foreground"><div className="h-2.5 w-2.5 rounded-[2px] border-[1.5px] border-background" /></div>
+          <div className="grid h-6 w-6 place-items-center rounded-[5px] bg-foreground">
+            <div className="h-2.5 w-2.5 rounded-[2px] border-[1.5px] border-background" />
+          </div>
           <span className="text-[14px] font-semibold tracking-tight">Formora</span>
-          <span className="rounded-full border hairline bg-muted/60 px-2 py-0.5 font-mono text-[10px] text-muted-foreground">Blueprint OS</span>
+          <span className="rounded border hairline bg-muted/50 px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
+            Blueprint OS
+          </span>
         </div>
 
         {selectedPlan && (
@@ -120,39 +208,115 @@ export default function Login() {
           </div>
         )}
 
-        <h1 className="text-2xl font-semibold tracking-tight" data-testid="login-title">{mode === "login" ? "Sign in" : "Create your account"}</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">{mode === "login" ? "Continue where you left off." : "Start free with 1 active blueprint project."}</p>
-        <Button variant="outline" className="mt-7 h-10 gap-2" onClick={google} data-testid="google-login-btn">
-          <svg className="h-4 w-4" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.6 3.9-5.5 3.9-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.3 14.6 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12s4.3 9.6 9.6 9.6c5.5 0 9.2-3.9 9.2-9.4 0-.6-.1-1.1-.2-1.6H12z" /></svg>
+        <h1 className="text-2xl font-semibold tracking-tight" data-testid="login-title">
+          {mode === "login" ? "Sign in" : "Create your account"}
+        </h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          {mode === "login"
+            ? "Access your software blueprints."
+            : "Start free with 1 active blueprint project."}
+        </p>
+
+        <Button
+          variant="outline"
+          className="mt-7 h-10 gap-2"
+          onClick={google}
+          data-testid="google-login-btn"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24">
+            <path
+              fill="#EA4335"
+              d="M12 10.2v3.9h5.5c-.2 1.3-1.6 3.9-5.5 3.9-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.3 14.6 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12s4.3 9.6 9.6 9.6c5.5 0 9.2-3.9 9.2-9.4 0-.6-.1-1.1-.2-1.6H12z"
+            />
+          </svg>
           Continue with Google
         </Button>
-        <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground"><div className="h-px flex-1 bg-border" />or<div className="h-px flex-1 bg-border" /></div>
+
+        <div className="my-5 flex items-center gap-3 font-mono text-[10.5px] uppercase tracking-wider text-muted-foreground">
+          <div className="h-px flex-1 bg-border" />
+          or
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
         <form onSubmit={submit} className="space-y-4" data-testid="auth-form">
           {mode === "register" && (
-            <div className="space-y-1.5"><Label htmlFor="name">Name</Label><Input id="name" value={form.name} onChange={set("name")} required data-testid="register-name-input" /></div>
+            <div className="space-y-1.5">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                value={form.name}
+                onChange={set("name")}
+                required
+                data-testid="register-name-input"
+              />
+            </div>
           )}
-          <div className="space-y-1.5"><Label htmlFor="email">Email</Label><Input id="email" type="email" value={form.email} onChange={set("email")} required data-testid="login-email-input" /></div>
-          <div className="space-y-1.5"><Label htmlFor="password">Password</Label><Input id="password" type="password" value={form.password} onChange={set("password")} required minLength={mode === "register" ? 8 : undefined} data-testid="login-password-input" /></div>
-          {err && <p className="text-sm text-destructive" data-testid="auth-error">{err}</p>}
-          <Button type="submit" className="w-full h-10" disabled={busy} data-testid="auth-submit-btn">{busy && <Loader2 className="h-4 w-4 animate-spin mr-2" />}{mode === "login" ? "Sign in" : "Create account"}</Button>
+          <div className="space-y-1.5">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={form.email}
+              onChange={set("email")}
+              required
+              data-testid="login-email-input"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={form.password}
+              onChange={set("password")}
+              required
+              minLength={mode === "register" ? 8 : undefined}
+              data-testid="login-password-input"
+            />
+          </div>
+          {err && (
+            <p className="text-sm text-destructive" data-testid="auth-error">
+              {err}
+            </p>
+          )}
+          <Button
+            type="submit"
+            className="w-full h-10 bg-foreground text-background hover:bg-foreground/90"
+            disabled={busy}
+            data-testid="auth-submit-btn"
+          >
+            {busy && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            {mode === "login" ? "Sign in" : "Create account"}
+          </Button>
         </form>
 
         <div className="mt-5 flex flex-col gap-3">
-          <button className="text-sm text-muted-foreground hover:text-foreground text-left" onClick={() => { setMode(mode === "login" ? "register" : "login"); setErr(""); }} data-testid="toggle-auth-mode-btn">
-            {mode === "login" ? "No account? Create one" : "Already have an account? Sign in"}
+          <button
+            type="button"
+            className="text-sm text-muted-foreground hover:text-foreground text-left transition-colors"
+            onClick={() => {
+              setMode(mode === "login" ? "register" : "login");
+              setErr("");
+            }}
+            data-testid="toggle-auth-mode-btn"
+          >
+            {mode === "login"
+              ? "No account? Create one"
+              : "Already have an account? Sign in"}
           </button>
 
           <button
             type="button"
             disabled={busy}
             onClick={loginDemo}
-            className="font-mono text-xs text-muted-foreground hover:text-foreground text-left underline underline-offset-4"
+            className="font-mono text-xs text-muted-foreground hover:text-foreground text-left transition-colors"
             data-testid="login-demo-account-btn"
           >
-            Inspect sample workspace (&ldquo;Shelfmate&rdquo;) &rarr;
+            Demo account: <span className="underline underline-offset-2">demo@blueprintos.dev</span> &rarr;
           </button>
         </div>
       </div>
+
       <BlueprintVisual />
     </div>
   );

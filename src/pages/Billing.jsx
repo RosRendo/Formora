@@ -1,34 +1,27 @@
 import { useState, useEffect } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import {
   Check,
-  Zap,
-  Sparkles,
-  ShieldCheck,
   CreditCard,
-  Building2,
-  AlertCircle,
   ExternalLink,
   RefreshCw,
-  FolderKanban,
-  CheckCircle2,
-  FileCode,
-  Users,
+  ArrowUpRight,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { http } from "@/lib/api";
+import { http, errMsg } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { PageHeader, PageLoading, EmptyState } from "@/components/common";
+import { PageHeader, PageLoading } from "@/components/common";
 
 export default function Billing() {
-  const { user, check: refreshAuth } = useAuth();
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
 
   const [loading, setLoading] = useState(true);
   const [subData, setSubData] = useState(null);
   const [plans, setPlans] = useState({});
-  const [interval, setInterval] = useState("monthly"); // monthly | yearly
+  const [interval, setInterval] = useState("monthly");
   const [actionBusy, setActionBusy] = useState(null);
 
   const fetchBillingData = async () => {
@@ -40,7 +33,7 @@ export default function Billing() {
       ]);
       setPlans(plansRes.data.plans || {});
       setSubData(subRes.data || null);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load subscription information");
     } finally {
       setLoading(false);
@@ -50,7 +43,7 @@ export default function Billing() {
   useEffect(() => {
     fetchBillingData();
     if (searchParams.get("checkout") === "success") {
-      toast.success("Checkout completed! Webhook processing in progress.");
+      toast.success("Checkout completed. Subscription status is syncing.");
     }
   }, []);
 
@@ -65,33 +58,25 @@ export default function Billing() {
       });
 
       if (data.checkout_url) {
-        if (data.mode === "simulation") {
-          toast.info("Entering Lemon Squeezy checkout simulation...");
-        }
         window.location.href = data.checkout_url;
       }
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Checkout creation failed");
+      toast.error(errMsg(err));
     } finally {
       setActionBusy(null);
     }
   };
 
-  const handleSimulateWebhook = async (eventName, targetPlan = "pro") => {
+  const openCustomerPortal = async () => {
     try {
-      setActionBusy("sim");
-      const { data } = await http.post("/billing/dev-simulate-webhook", {
-        event_name: eventName,
-        plan: targetPlan,
-        interval,
-      });
-      toast.success(`Simulated Lemon Squeezy event: ${eventName} (${targetPlan})`);
-      await fetchBillingData();
-      await refreshAuth();
-    } catch (err) {
-      toast.error("Simulation failed");
-    } finally {
-      setActionBusy(null);
+      const { data } = await http.get("/billing/portal");
+      if (data?.portal_url && data.portal_url.startsWith("http")) {
+        window.open(data.portal_url, "_blank", "noopener,noreferrer");
+      } else {
+        window.open("https://app.lemonsqueezy.com/my-orders", "_blank", "noopener,noreferrer");
+      }
+    } catch {
+      window.open("https://app.lemonsqueezy.com/my-orders", "_blank", "noopener,noreferrer");
     }
   };
 
@@ -100,249 +85,226 @@ export default function Billing() {
   const currentPlanKey = subData?.plan || user?.plan || "free";
   const usage = subData?.usage || { active_projects: 0, max_projects: 1 };
   const subscription = subData?.subscription;
-  const isSimulation = subData?.simulation_mode;
+  const isUnlimited = usage.max_projects === Infinity || usage.max_projects === null;
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10 space-y-10">
+    <div className="mx-auto max-w-6xl px-6 md:px-10 py-10 space-y-10">
       <PageHeader
         title="Billing & Subscription"
-        description="Manage your Formora workspace plan, quotas, invoices, and Lemon Squeezy payment settings."
-      />
+        description="Manage your workspace plan, active project quota, and invoices."
+      >
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={fetchBillingData}
+          title="Refresh subscription status"
+          data-testid="billing-refresh-btn"
+        >
+          <RefreshCw className="h-4 w-4 text-muted-foreground" />
+        </Button>
+      </PageHeader>
 
-      {/* Subscription Status Card */}
-      <div className="relative overflow-hidden rounded-2xl border hairline bg-card p-6 md:p-8 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Active Tier
+      {/* Active Subscription Summary */}
+      <div className="rounded-lg border hairline bg-card">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2.5">
+              <span className="font-mono text-[10.5px] uppercase tracking-wider text-muted-foreground">
+                Current Tier
               </span>
-              <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-semibold capitalize ${
-                  currentPlanKey === "pro"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : currentPlanKey === "team"
-                    ? "bg-violet-600 text-white"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                <Sparkles className="h-3 w-3" />
+              <span className="rounded border hairline bg-foreground px-2 py-0.5 font-mono text-[10px] font-medium uppercase text-background">
                 {plans[currentPlanKey]?.name || currentPlanKey}
               </span>
               {subscription?.status && (
-                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 capitalize">
+                <span className="rounded border hairline bg-muted/50 px-2 py-0.5 font-mono text-[10px] uppercase text-foreground">
                   {subscription.status}
                 </span>
               )}
             </div>
-            <h2 className="text-2xl font-bold tracking-tight">
+
+            <h2 className="text-xl font-semibold tracking-tight">
               {currentPlanKey === "free"
-                ? "Starter Plan"
+                ? "Starter Workspace"
                 : currentPlanKey === "pro"
-                ? "Formora Pro Builder"
-                : "Formora Team Studio"}
+                ? "Pro Builder Workspace"
+                : "Team Studio Workspace"}
             </h2>
-            <p className="text-sm text-muted-foreground max-w-2xl">
+            <p className="text-xs text-muted-foreground max-w-2xl leading-relaxed">
               {currentPlanKey === "free"
-                ? "You are currently on the free Starter tier with 1 active project blueprint. Upgrade to Pro for unlimited projects and full code exports."
-                : `Your subscription renews automatically on ${
+                ? "Includes 1 active blueprint project across all 12 architectural modules. Upgrade to Pro for unlimited blueprints, PostgreSQL DDL & Prisma generators, and bulk specification exports."
+                : `Renews automatically on ${
                     subscription?.renews_at
                       ? new Date(subscription.renews_at).toLocaleDateString()
-                      : "the end of billing period"
+                      : "your next billing date"
                   }.`}
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             {currentPlanKey !== "free" ? (
               <Button
                 variant="outline"
-                className="gap-2"
-                onClick={() => {
-                  toast.info("Opening Lemon Squeezy customer billing portal...");
-                  window.open("https://app.lemonsqueezy.com/my-orders", "_blank");
-                }}
+                size="sm"
+                className="h-9 gap-2 text-xs"
+                onClick={openCustomerPortal}
+                data-testid="billing-portal-btn"
               >
-                <CreditCard className="h-4 w-4" />
+                <CreditCard className="h-3.5 w-3.5" />
                 <span>Customer Portal</span>
                 <ExternalLink className="h-3 w-3 text-muted-foreground" />
               </Button>
             ) : (
               <Button
+                size="sm"
                 onClick={() => handleCheckout("pro")}
                 disabled={actionBusy === "pro"}
-                className="gap-2 font-medium"
+                className="h-9 gap-1.5 bg-foreground text-background hover:bg-foreground/90 text-xs font-medium px-4"
+                data-testid="billing-upgrade-hero-btn"
               >
-                <Zap className="h-4 w-4 fill-current" />
+                {actionBusy === "pro" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 <span>Upgrade to Pro</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
               </Button>
             )}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={fetchBillingData}
-              title="Refresh subscription status"
-            >
-              <RefreshCw className="h-4 w-4 text-muted-foreground" />
-            </Button>
           </div>
         </div>
 
-        {/* Quota Progress Bar */}
-        <div className="mt-6 pt-6 border-t hairline grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="rounded-xl border hairline bg-muted/30 p-4">
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5 font-medium">
-                <FolderKanban className="h-3.5 w-3.5 text-primary" />
-                Active Projects Quota
-              </span>
-              <span className="font-mono font-medium text-foreground">
-                {usage.active_projects} /{" "}
-                {usage.max_projects === Infinity ? "Unlimited" : usage.max_projects}
+        {/* 3-Column Architectural Telemetry Strip */}
+        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x hairline border-t hairline bg-muted/15">
+          <div className="p-4 space-y-2">
+            <div className="flex items-center justify-between font-mono text-[11px]">
+              <span className="text-muted-foreground">ACTIVE PROJECTS</span>
+              <span className="font-medium text-foreground">
+                {usage.active_projects} / {isUnlimited ? "∞" : usage.max_projects}
               </span>
             </div>
-            <div className="mt-3 h-2 w-full rounded-full bg-muted overflow-hidden">
+            <div className="h-1.5 w-full rounded-full bg-border overflow-hidden">
               <div
-                className={`h-full transition-all duration-300 rounded-full ${
-                  usage.max_projects !== Infinity && usage.active_projects >= usage.max_projects
-                    ? "bg-amber-500"
-                    : "bg-primary"
-                }`}
+                className="h-full bg-foreground transition-all duration-300"
                 style={{
-                  width:
-                    usage.max_projects === Infinity
-                      ? "100%"
-                      : `${Math.min(100, (usage.active_projects / usage.max_projects) * 100)}%`,
+                  width: isUnlimited
+                    ? "100%"
+                    : `${Math.min(100, (usage.active_projects / Math.max(1, usage.max_projects)) * 100)}%`,
                 }}
               />
             </div>
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              {usage.max_projects === Infinity
-                ? "Unlimited projects allowed on your current tier."
+            <p className="text-[11px] text-muted-foreground">
+              {isUnlimited
+                ? "Unlimited active blueprints enabled."
                 : usage.active_projects >= usage.max_projects
-                ? "Quota limit reached. Upgrade to Pro to create more blueprints."
-                : `${usage.max_projects - usage.active_projects} active project slot remaining.`}
+                ? "Starter limit reached. Upgrade for unlimited projects."
+                : `${usage.max_projects - usage.active_projects} active slot available.`}
             </p>
           </div>
 
-          <div className="rounded-xl border hairline bg-muted/30 p-4">
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5 font-medium">
-                <FileCode className="h-3.5 w-3.5 text-primary" />
-                Schema & DDL Generators
-              </span>
-              <span className="font-mono font-medium text-foreground">
-                {currentPlanKey === "free" ? "Limited" : "Full Access"}
+          <div className="p-4 space-y-2">
+            <div className="flex items-center justify-between font-mono text-[11px]">
+              <span className="text-muted-foreground">CODE &amp; DDL EXPORTS</span>
+              <span className="font-medium text-foreground">
+                {currentPlanKey === "free" ? ".MD ONLY" : "FULL SUITE"}
               </span>
             </div>
-            <p className="mt-4 text-[11px] text-muted-foreground leading-relaxed">
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
               {currentPlanKey === "free"
-                ? "PostgreSQL DDL & Prisma generator locked on Starter."
-                : "Full PostgreSQL DDL, Prisma schema, and 9-module ZIP downloads enabled."}
+                ? "Individual Markdown specs enabled. PostgreSQL DDL, Prisma & bulk exports require Pro."
+                : "PostgreSQL DDL, Prisma schema, OpenAPI, CI/CD & 14-file bundle exports enabled."}
             </p>
           </div>
 
-          <div className="rounded-xl border hairline bg-muted/30 p-4">
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5 font-medium">
-                <Users className="h-3.5 w-3.5 text-primary" />
-                Team Seats
-              </span>
-              <span className="font-mono font-medium text-foreground">
-                {currentPlanKey === "team" ? "10 seats" : "1 seat"}
+          <div className="p-4 space-y-2">
+            <div className="flex items-center justify-between font-mono text-[11px]">
+              <span className="text-muted-foreground">WORKSPACE SEATS</span>
+              <span className="font-medium text-foreground">
+                {currentPlanKey === "team" ? "10 SEATS" : "1 SEAT"}
               </span>
             </div>
-            <p className="mt-4 text-[11px] text-muted-foreground leading-relaxed">
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
               {currentPlanKey === "team"
-                ? "Centralized multi-seat billing & shared blueprints."
-                : "Single builder license."}
+                ? "Shared team blueprints & centralized invoicing."
+                : "Single engineer workspace."}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Interval Selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4">
+      {/* Billing Interval Switch */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-2">
         <div>
-          <h3 className="text-xl font-bold tracking-tight">Available Plans</h3>
-          <p className="text-sm text-muted-foreground">
-            Billed transparently through Lemon Squeezy Merchant of Record.
-          </p>
+          <div className="font-mono text-[10.5px] uppercase tracking-wider text-muted-foreground">
+            Plans // Lemon Squeezy Merchant of Record
+          </div>
+          <h3 className="mt-1 text-lg font-semibold tracking-tight">Workspace Tiers</h3>
         </div>
 
-        <div className="inline-flex items-center rounded-xl border hairline bg-muted/40 p-1 text-xs self-start sm:self-auto">
+        <div className="inline-flex items-center rounded-md border hairline bg-muted/40 p-0.5 font-mono text-[11px] self-start sm:self-auto">
           <button
             type="button"
             onClick={() => setInterval("monthly")}
-            className={`rounded-lg px-3 py-1.5 font-medium transition-all ${
+            className={`rounded px-3 py-1 transition-colors ${
               interval === "monthly"
-                ? "bg-background text-foreground shadow-sm"
+                ? "bg-foreground text-background font-medium"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            Monthly Billing
+            Monthly
           </button>
           <button
             type="button"
             onClick={() => setInterval("yearly")}
-            className={`rounded-lg px-3 py-1.5 font-medium transition-all flex items-center gap-1.5 ${
+            className={`flex items-center gap-1.5 rounded px-3 py-1 transition-colors ${
               interval === "yearly"
-                ? "bg-background text-foreground shadow-sm"
+                ? "bg-foreground text-background font-medium"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <span>Annual Billing</span>
-            <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.2 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-              Save 17%
-            </span>
+            <span>Annual</span>
+            <span className="opacity-75">-17%</span>
           </button>
         </div>
       </div>
 
-      {/* 3 Bento-Grid Plan Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Starter Plan */}
+      {/* 3 Swiss Architectural Plan Columns */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* 01 Starter */}
         <div
-          className={`flex flex-col justify-between rounded-2xl border p-6 transition-all ${
-            currentPlanKey === "free"
-              ? "border-primary/40 bg-card shadow-sm"
-              : "hairline bg-card/60 hover:bg-card"
+          className={`flex flex-col justify-between rounded-lg border p-6 ${
+            currentPlanKey === "free" ? "border-foreground/50 bg-card" : "hairline bg-card/70"
           }`}
         >
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-lg">Starter</h4>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs text-muted-foreground">01</span>
+                <h4 className="font-semibold text-base">Starter</h4>
+              </div>
               {currentPlanKey === "free" && (
-                <span className="text-[11px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                  Current Plan
+                <span className="rounded border hairline bg-muted px-2 py-0.5 font-mono text-[10px] text-foreground">
+                  CURRENT
                 </span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground min-h-[36px]">
-              For testing the 9-panel architectural canvas on your first product idea.
+
+            <p className="text-xs text-muted-foreground min-h-[34px]">
+              For evaluating the 12-module blueprint workbench on your first project.
             </p>
-            <div className="flex items-baseline gap-1 pt-2">
-              <span className="text-3xl font-bold tracking-tight">$0</span>
+
+            <div className="flex items-baseline gap-1 pt-1 font-mono">
+              <span className="text-3xl font-semibold tracking-tight">$0</span>
               <span className="text-xs text-muted-foreground">/ forever</span>
             </div>
 
             <div className="border-t hairline pt-4 space-y-2.5 text-xs">
-              <div className="flex items-center gap-2">
-                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                <span>1 active blueprint project</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                <span>All 9 modular blueprint panels</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                <span>Individual Markdown (.md) exports</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                <span>AI Architect chat router</span>
-              </div>
+              {[
+                "1 active blueprint project",
+                "All 12 modular engineering panels",
+                "Individual Markdown (.md) exports",
+                "Multi-model AI Architect router",
+              ].map((feat) => (
+                <div key={feat} className="flex items-center gap-2">
+                  <Check className="h-3.5 w-3.5 text-foreground shrink-0" />
+                  <span>{feat}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -350,42 +312,39 @@ export default function Billing() {
             <Button
               variant="outline"
               disabled={currentPlanKey === "free"}
-              onClick={() => handleSimulateWebhook("subscription_cancelled", "free")}
-              className="w-full text-xs font-medium"
+              onClick={openCustomerPortal}
+              className="w-full h-9 text-xs font-medium"
             >
-              {currentPlanKey === "free" ? "Active" : "Downgrade to Starter"}
+              {currentPlanKey === "free" ? "Active Plan" : "Manage via Portal"}
             </Button>
           </div>
         </div>
 
-        {/* Pro Builder Plan (Featured) */}
+        {/* 02 Pro Builder */}
         <div
-          className={`relative flex flex-col justify-between rounded-2xl border-2 p-6 transition-all ${
+          className={`flex flex-col justify-between rounded-lg border p-6 ${
             currentPlanKey === "pro"
-              ? "border-primary bg-card shadow-md"
-              : "border-primary/60 bg-gradient-to-b from-primary/5 via-card to-card hover:border-primary shadow-sm"
+              ? "border-foreground bg-card"
+              : "border-foreground/70 bg-card shadow-sm"
           }`}
         >
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-            <span className="rounded-full bg-primary px-3 py-0.5 text-[11px] font-semibold text-primary-foreground shadow-sm">
-              Most Popular
-            </span>
-          </div>
-
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-lg">Pro Builder</h4>
-              {currentPlanKey === "pro" && (
-                <span className="text-[11px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                  Current Plan
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs text-muted-foreground">02</span>
+                <h4 className="font-semibold text-base">Pro Builder</h4>
+              </div>
+              <span className="rounded border hairline bg-foreground px-2 py-0.5 font-mono text-[10px] text-background">
+                {currentPlanKey === "pro" ? "CURRENT" : "RECOMMENDED"}
+              </span>
             </div>
-            <p className="text-xs text-muted-foreground min-h-[36px]">
-              For senior engineers and founders building real fullstack applications.
+
+            <p className="text-xs text-muted-foreground min-h-[34px]">
+              For founders and engineers shipping production full-stack systems.
             </p>
-            <div className="flex items-baseline gap-1 pt-2">
-              <span className="text-3xl font-bold tracking-tight">
+
+            <div className="flex items-baseline gap-1 pt-1 font-mono">
+              <span className="text-3xl font-semibold tracking-tight">
                 ${interval === "yearly" ? "190" : "19"}
               </span>
               <span className="text-xs text-muted-foreground">
@@ -394,26 +353,18 @@ export default function Billing() {
             </div>
 
             <div className="border-t hairline pt-4 space-y-2.5 text-xs">
-              <div className="flex items-center gap-2 font-medium">
-                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                <span>Unlimited active blueprint projects</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                <span>PostgreSQL DDL & Prisma generator</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                <span>Complete 9-file ZIP bulk downloads</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                <span>Priority high-speed AI Architect</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                <span>Project archives & sync</span>
-              </div>
+              {[
+                "Unlimited active blueprint projects",
+                "PostgreSQL DDL & Prisma schema generators",
+                "14-file separated .md & CI/CD bundle export",
+                "Priority multi-provider AI Architect",
+                "Version history & impact cascade tracking",
+              ].map((feat) => (
+                <div key={feat} className="flex items-center gap-2">
+                  <Check className="h-3.5 w-3.5 text-foreground shrink-0" />
+                  <span>{feat}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -421,36 +372,40 @@ export default function Billing() {
             <Button
               onClick={() => handleCheckout("pro")}
               disabled={actionBusy === "pro" || currentPlanKey === "pro"}
-              className="w-full gap-2 text-xs font-medium shadow-sm"
+              className="w-full h-9 gap-1.5 bg-foreground text-background hover:bg-foreground/90 text-xs font-medium"
+              data-testid="billing-checkout-pro-btn"
             >
-              <Zap className="h-3.5 w-3.5 fill-current" />
+              {actionBusy === "pro" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               <span>{currentPlanKey === "pro" ? "Current Plan" : "Upgrade to Pro"}</span>
             </Button>
           </div>
         </div>
 
-        {/* Team Studio Plan */}
+        {/* 03 Team Studio */}
         <div
-          className={`flex flex-col justify-between rounded-2xl border p-6 transition-all ${
-            currentPlanKey === "team"
-              ? "border-violet-500 bg-card shadow-sm"
-              : "hairline bg-card/60 hover:bg-card"
+          className={`flex flex-col justify-between rounded-lg border p-6 ${
+            currentPlanKey === "team" ? "border-foreground bg-card" : "hairline bg-card/70"
           }`}
         >
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-lg">Team Studio</h4>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs text-muted-foreground">03</span>
+                <h4 className="font-semibold text-base">Team Studio</h4>
+              </div>
               {currentPlanKey === "team" && (
-                <span className="text-[11px] font-semibold text-violet-600 bg-violet-500/10 px-2 py-0.5 rounded-full">
-                  Current Plan
+                <span className="rounded border hairline bg-foreground px-2 py-0.5 font-mono text-[10px] text-background">
+                  CURRENT
                 </span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground min-h-[36px]">
-              For software consultancies, agencies, and engineering teams.
+
+            <p className="text-xs text-muted-foreground min-h-[34px]">
+              For product teams, software agencies, and engineering studios.
             </p>
-            <div className="flex items-baseline gap-1 pt-2">
-              <span className="text-3xl font-bold tracking-tight">
+
+            <div className="flex items-baseline gap-1 pt-1 font-mono">
+              <span className="text-3xl font-semibold tracking-tight">
                 ${interval === "yearly" ? "490" : "49"}
               </span>
               <span className="text-xs text-muted-foreground">
@@ -459,136 +414,71 @@ export default function Billing() {
             </div>
 
             <div className="border-t hairline pt-4 space-y-2.5 text-xs">
-              <div className="flex items-center gap-2 font-medium">
-                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                <span>Everything in Pro</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                <span>Up to 10 member seats included</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                <span>Shared team blueprint workspace</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                <span>Centralized team invoicing</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                <span>Dedicated SLA & priority support</span>
-              </div>
+              {[
+                "Everything in Pro Builder",
+                "Up to 10 member seats included",
+                "Shared team blueprint workspace",
+                "Centralized invoicing & VAT receipts",
+                "Priority engineering support",
+              ].map((feat) => (
+                <div key={feat} className="flex items-center gap-2">
+                  <Check className="h-3.5 w-3.5 text-foreground shrink-0" />
+                  <span>{feat}</span>
+                </div>
+              ))}
             </div>
           </div>
 
           <div className="pt-6 mt-6 border-t hairline">
             <Button
-              variant={currentPlanKey === "team" ? "secondary" : "outline"}
+              variant="outline"
               onClick={() => handleCheckout("team")}
               disabled={actionBusy === "team" || currentPlanKey === "team"}
-              className="w-full text-xs font-medium"
+              className="w-full h-9 gap-1.5 text-xs font-medium"
+              data-testid="billing-checkout-team-btn"
             >
-              {currentPlanKey === "team" ? "Current Plan" : "Upgrade to Team"}
+              {actionBusy === "team" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              <span>{currentPlanKey === "team" ? "Current Plan" : "Upgrade to Team"}</span>
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Developer Simulation Sandbox Toolbar (Zero-Config Test Drive) */}
-      <div className="rounded-2xl border border-dashed border-amber-500/40 bg-amber-500/5 p-5 space-y-3">
-        <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
-          <AlertCircle className="h-4 w-4" />
-          <h4 className="text-xs font-semibold uppercase tracking-wider">
-            Lemon Squeezy Webhook Sandbox Simulator
-          </h4>
+      {/* Invoices & Transaction Ledger */}
+      <div className="rounded-lg border hairline bg-card p-6 space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-semibold tracking-tight">Invoice &amp; Transaction Ledger</h4>
+          <span className="font-mono text-[10.5px] text-muted-foreground">LEMON SQUEEZY MOR</span>
         </div>
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          {isSimulation
-            ? "Live Lemon Squeezy API keys are not set in environment. Developer Simulation Mode is active. You can trigger authentic server-to-server webhook lifecycle transitions with a single click to test tier transitions and project quota gating."
-            : "Live Lemon Squeezy API keys detected. You can test authentic webhook transitions using the buttons below."}
-        </p>
 
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-xs h-7 gap-1.5"
-            disabled={actionBusy !== null}
-            onClick={() => handleSimulateWebhook("subscription_created", "pro")}
-          >
-            <Zap className="h-3 w-3 text-amber-500" />
-            <span>Simulate Upgrade to Pro</span>
-          </Button>
-
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-xs h-7 gap-1.5"
-            disabled={actionBusy !== null}
-            onClick={() => handleSimulateWebhook("subscription_created", "team")}
-          >
-            <Users className="h-3 w-3 text-violet-500" />
-            <span>Simulate Upgrade to Team</span>
-          </Button>
-
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-xs h-7 gap-1.5"
-            disabled={actionBusy !== null}
-            onClick={() => handleSimulateWebhook("subscription_cancelled", currentPlanKey)}
-          >
-            <span>Simulate Cancellation</span>
-          </Button>
-
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-xs h-7 gap-1.5"
-            disabled={actionBusy !== null}
-            onClick={() => handleSimulateWebhook("subscription_expired", "free")}
-          >
-            <span>Simulate Expiration / Downgrade</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Invoices & Transaction History */}
-      <div className="rounded-2xl border hairline bg-card p-6 space-y-4">
-        <h4 className="text-base font-semibold tracking-tight">Payment & Transaction Ledger</h4>
         {subData?.transactions?.length > 0 ? (
           <div className="divide-y hairline text-xs">
             {subData.transactions.map((tx) => (
               <div key={tx.id} className="py-3 flex items-center justify-between">
                 <div>
                   <div className="font-medium text-foreground flex items-center gap-2">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
                     <span>{tx.event_name}</span>
                     <span className="font-mono text-[11px] text-muted-foreground">{tx.id}</span>
                   </div>
-                  <div className="text-muted-foreground text-[11px] mt-0.5">
+                  <div className="font-mono text-[10.5px] text-muted-foreground mt-0.5">
                     {new Date(tx.created_at).toLocaleString()}
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="font-mono font-medium">
+                <div className="text-right font-mono">
+                  <div className="font-medium">
                     ${(tx.amount / 100).toFixed(2)} {tx.currency}
                   </div>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 capitalize">
-                    {tx.status}
-                  </span>
+                  <span className="text-[10px] uppercase text-muted-foreground">{tx.status}</span>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground py-2">
-            No transaction records found yet. Completed payments via Lemon Squeezy will appear here.
+          <p className="text-xs text-muted-foreground py-1">
+            No completed transactions yet. Invoices processed via Lemon Squeezy appear here automatically.
           </p>
         )}
       </div>
     </div>
   );
 }
-

@@ -16,6 +16,7 @@ import {
   normalizeDeploymentUpdates,
   summarizeDeploymentPlacements,
 } from "./phase3Architect.js";
+import { runUnifiedLiveLlm } from "./llmProviders.js";
 
 const uid = () => crypto.randomUUID();
 
@@ -2300,7 +2301,7 @@ export async function runArchitectChat({
   const { mode, targets } = detectTargetModules(message, explicitTargets, isFreshProject);
 
   // 1. Try live LLM if configured
-  const llmResult = await tryLiveLLM({
+  const llmResult = await runUnifiedLiveLlm({
     message,
     project,
     existingArtifacts,
@@ -2314,6 +2315,19 @@ export async function runArchitectChat({
     const filtered = {};
     for (const k of targets) {
       if (rawModules[k]) filtered[k] = rawModules[k];
+    }
+    const missingTargets = [...targets].filter((k) => k !== "docs" && !filtered[k]);
+    if (missingTargets.length > 0) {
+      const semFallback = runSemanticArchitect({
+        message,
+        project,
+        existingArtifacts,
+        targets: new Set(missingTargets),
+        mode,
+      });
+      for (const mk of missingTargets) {
+        if (semFallback.updates[mk]) filtered[mk] = semFallback.updates[mk];
+      }
     }
     const normalized = normalizeModuleUpdates(filtered, existingArtifacts);
     const placements = summarizePlacements(normalized);

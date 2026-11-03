@@ -102,4 +102,4 @@ Health probe: `GET /api/health` → `{ "ok": true, "database": { "engine": "sqli
 ## Tech Stack
 - **Frontend**: React 19, Vite, Tailwind CSS, Radix UI primitives, `@xyflow/react`, Lucide Icons, `IBM Plex Sans` + `JetBrains Mono`.
 - **Backend**: Node.js, Express 5, native `node:sqlite` (SQLite WAL), `jsonwebtoken`, `bcryptjs`, HMAC-SHA256 Lemon Squeezy webhooks.
-- **AI Engine**: Built-in deterministic Semantic Architect (`server/aiArchitect.js`, `server/phase2Architect.js`, `server/phase3Architect.js`) with optional BYOK Google Gemini (`gemini-2.5-flash`) or OpenAI (`gpt-4o-mini`) synthesis.
+- **AI Engine**: Server-first Multi-Provider & Custom Endpoint AI Router (`server/llmProviders.js`, `server/aiArchitect.js`) supporting **Server-Managed SaaS AI** via `.env` (`AI_PROVIDER`, `AI_BASE_URL`, `AI_MODEL`, `AI_API_KEY`) across **8 providers** (`Custom OpenAI/Anthropic Endpoint`, `Google Gemini`, `OpenAI`, `Anthropic Claude`, `OpenRouter`, `DeepSeek`, `Groq`, `Ollama`), optional policy-gated user BYOK (`ALLOW_USER_LLM_CONFIG`), and a deterministic zero-key fallback engine.

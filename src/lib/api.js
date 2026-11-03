@@ -47,6 +47,73 @@ export function notifyArtifactsUpdated(kinds = []) {
   window.dispatchEvent(new CustomEvent("bp:docs-updated"));
 }
 
+export const DEFAULT_LLM_CONFIG = {
+  mode: "server",
+  provider: "server",
+  selectedModel: "gemini-2.5-flash",
+  apiKey: "",
+  model: "",
+  baseUrl: "",
+  protocol: "openai",
+};
+
+export function loadStoredLlmConfig() {
+  try {
+    const raw = localStorage.getItem("bp:llm-config");
+    if (!raw) return { ...DEFAULT_LLM_CONFIG };
+    const parsed = JSON.parse(raw);
+    if (!parsed.mode) {
+      const hasCustom = Boolean(parsed.apiKey?.trim() || parsed.baseUrl?.trim());
+      return {
+        ...DEFAULT_LLM_CONFIG,
+        ...parsed,
+        mode: hasCustom ? "override" : "server",
+        provider: hasCustom ? parsed.provider || "gemini" : "server",
+      };
+    }
+    return { ...DEFAULT_LLM_CONFIG, ...parsed };
+  } catch {
+    return { ...DEFAULT_LLM_CONFIG };
+  }
+}
+
+export function saveStoredLlmConfig(next) {
+  const merged = { ...DEFAULT_LLM_CONFIG, ...next };
+  try {
+    localStorage.setItem("bp:llm-config", JSON.stringify(merged));
+    window.dispatchEvent(new CustomEvent("bp:llm-config", { detail: merged }));
+  } catch {
+    // ignore storage quota errors
+  }
+  return merged;
+}
+
+export function getActiveClientLlmConfig(cfgInput = null) {
+  const cfg = cfgInput || loadStoredLlmConfig();
+  if (!cfg) return null;
+
+  if (cfg.mode === "builtin" || cfg.provider === "builtin") {
+    return { mode: "builtin", provider: "builtin" };
+  }
+
+  if (cfg.mode === "override" && cfg.provider && cfg.provider !== "server") {
+    if (cfg.provider === "custom" || cfg.provider === "ollama") {
+      return cfg.baseUrl?.trim() ? cfg : null;
+    }
+    return cfg.apiKey?.trim() ? cfg : null;
+  }
+
+  if (cfg.selectedModel) {
+    return {
+      mode: "server",
+      provider: "server",
+      selectedModel: cfg.selectedModel,
+    };
+  }
+
+  return null;
+}
+
 export const KIND_LABEL = {
   brief: "Project brief",
   spec: "Product requirements",

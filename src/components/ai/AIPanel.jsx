@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { http, errMsg, KIND_LABEL } from "@/lib/api";
+import { http, errMsg, KIND_LABEL, getActiveClientLlmConfig } from "@/lib/api";
 import { refsFrom } from "@/lib/diff";
 import { useProject, announceImpact } from "@/context/ProjectContext";
 import DiffView from "@/components/DiffView";
@@ -40,7 +40,10 @@ function Proposal({ job, onDone }) {
   };
   return (
     <div className="space-y-4 fade-up" data-testid="ai-proposal">
-      <div className="eyebrow">Proposed change to {KIND_LABEL[job.target_kind]}</div>
+      <div className="flex items-center justify-between">
+        <div className="eyebrow">Proposed change to {KIND_LABEL[job.target_kind]}</div>
+        {job.engine && <span className="rounded border hairline bg-muted/60 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">{job.engine}</span>}
+      </div>
       {job.notes && <details className="text-sm text-muted-foreground" data-testid="ai-proposal-notes"><summary className="cursor-pointer select-none line-clamp-2">{job.notes}</summary><p className="mt-2 whitespace-pre-wrap leading-relaxed">{job.notes}</p></details>}
       {current && !editing && <DiffView before={current} after={job.output} refs={refsFrom(current, job.output)} testid="ai-diff" maxHeight="48vh" />}
       {editing && <Textarea className="font-mono text-[11px] min-h-[360px]" value={text} onChange={(e) => setText(e.target.value)} data-testid="ai-proposal-json-editor" />}
@@ -90,7 +93,10 @@ export default function AIPanel() {
 
   const run = async () => {
     try {
-      const { data } = await http.post(`/projects/${pid}/ai/${sel}`, { instructions: instr });
+      const { data } = await http.post(`/projects/${pid}/ai/${sel}`, {
+        instructions: instr,
+        llm_config: getActiveClientLlmConfig(),
+      });
       setJob(data);
       poll(data.id);
     } catch (e) { toast.error(errMsg(e)); }
@@ -106,13 +112,13 @@ export default function AIPanel() {
       <SheetContent className="w-full sm:max-w-[620px] overflow-y-auto" data-testid="ai-assistant-panel">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" />AI Assistant</SheetTitle>
-          <SheetDescription>Each workflow reads only approved artifacts and returns a proposed change for you to review.</SheetDescription>
+          <SheetDescription>Each workflow reads upstream artifacts and returns a versioned diff proposal for you to review.</SheetDescription>
         </SheetHeader>
         <div className="mt-6 space-y-6">
           {job?.status === "running" && (
             <div className="flex items-center gap-3 rounded-md bg-accent px-4 py-4 text-sm" data-testid="ai-job-running">
               <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              <div className="flex-1"><div className="font-medium">Generating {KIND_LABEL[job.target_kind]}…</div><div className="text-xs text-muted-foreground">This can take a minute or two. You can close this panel; progress is saved.</div></div>
+              <div className="flex-1"><div className="font-medium">Generating {KIND_LABEL[job.target_kind]}…</div><div className="text-xs text-muted-foreground">This can take a moment. You can close this panel; progress is saved.</div></div>
             </div>
           )}
           {job?.status === "failed" && (
@@ -137,9 +143,6 @@ export default function AIPanel() {
                     </button>
                   );
                 })}
-                {["Generate UI blueprint", "Review security risks", "Generate test plans", "Review deployment readiness"].map((l) => (
-                  <div key={l} className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground/70">{l}<span className="text-[10px] ml-auto">later phase</span></div>
-                ))}
               </div>
               {wf && (
                 <div className="space-y-3 fade-up">

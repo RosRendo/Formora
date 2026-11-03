@@ -143,6 +143,11 @@ sqlite.exec(`
     created_at TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS app_meta (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS processed_webhooks (
     event_id TEXT PRIMARY KEY,
     processed_at TEXT NOT NULL
@@ -580,8 +585,10 @@ export function loadStateFromSqlite() {
  * Initialize SQLite database: hydrate if populated, otherwise migrate legacy db.json or seed initial dataset.
  */
 export function initializeSqliteDatabase(createInitialSeedState) {
+  const initMeta = sqlite.prepare("SELECT value FROM app_meta WHERE key = 'initialized'").get();
   const countRow = sqlite.prepare("SELECT COUNT(*) AS cnt FROM users").get();
-  if (countRow && countRow.cnt > 0) {
+  if (initMeta?.value === "1" || (countRow && countRow.cnt > 0)) {
+    sqlite.prepare("INSERT OR REPLACE INTO app_meta (key, value) VALUES ('initialized', '1')").run();
     return loadStateFromSqlite();
   }
 
@@ -614,6 +621,7 @@ export function initializeSqliteDatabase(createInitialSeedState) {
   }
 
   persistStateToSqlite(initialState);
+  sqlite.prepare("INSERT OR REPLACE INTO app_meta (key, value) VALUES ('initialized', '1')").run();
   return loadStateFromSqlite();
 }
 

@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { ArrowRight, ArrowUpRight, Check, Copy, Loader2, Moon, Sun, Menu, X, Pause, Play } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowRight, ArrowUpRight, Check, Copy, Moon, Sun, Menu, X, Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { http, errMsg } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
 const PIPELINE = [
@@ -588,7 +586,6 @@ export default function Landing() {
   // Pricing & FAQ
   const [annual, setAnnual] = useState(false);
   const [openFaq, setOpenFaq] = useState(0);
-  const [demoBusy, setDemoBusy] = useState(false);
 
   const activeCase = WORKBENCH_CASES[caseIdx];
   const fullPrompt = activeCase.prompt;
@@ -649,27 +646,6 @@ export default function Landing() {
     navigator.clipboard?.writeText(sqlText);
     setCopiedSql(true);
     setTimeout(() => setCopiedSql(false), 1800);
-  };
-
-  const openSampleWorkspace = async () => {
-    if (user) {
-      navigate("/dashboard");
-      return;
-    }
-    setDemoBusy(true);
-    try {
-      const { data } = await http.post("/auth/login", {
-        email: "demo@blueprintos.dev",
-        password: "Blueprint123!",
-      });
-      setUser(data);
-      navigate("/dashboard");
-    } catch (err) {
-      toast.error(errMsg(err));
-      navigate("/login");
-    } finally {
-      setDemoBusy(false);
-    }
   };
 
   const selectPlan = (planKey) => {
@@ -782,10 +758,7 @@ export default function Landing() {
                   <Button onClick={() => navigate("/login?mode=register")} className="w-full h-10 bg-foreground text-background">
                     Start free
                   </Button>
-                  <Button variant="outline" onClick={openSampleWorkspace} disabled={demoBusy} className="w-full h-10">
-                    Inspect sample project
-                  </Button>
-                  <Button variant="ghost" onClick={() => navigate("/login")} className="w-full h-10">
+                  <Button variant="outline" onClick={() => navigate("/login")} className="w-full h-10">
                     Sign in
                   </Button>
                 </>
@@ -835,17 +808,14 @@ export default function Landing() {
                   <ArrowRight className="ml-2 h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </Button>
 
-                <Button
-                  variant="outline"
-                  onClick={openSampleWorkspace}
-                  disabled={demoBusy}
-                  className="h-10 px-4 font-mono text-xs"
-                  data-testid="hero-live-demo-btn"
+                <a
+                  href="#workbench"
+                  className="inline-flex h-10 items-center justify-center rounded-md border hairline bg-background px-4 font-mono text-xs text-foreground transition-colors hover:bg-muted/60"
+                  data-testid="hero-explore-workbench-btn"
                 >
-                  {demoBusy && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
-                  Inspect live sample (&ldquo;Shelfmate&rdquo;)
+                  Explore interactive workbench
                   <ArrowUpRight className="ml-1.5 h-3.5 w-3.5 text-muted-foreground" />
-                </Button>
+                </a>
               </div>
             </div>
 
@@ -1740,19 +1710,20 @@ export default function Landing() {
               Spec the schema and contracts before writing line one.
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Free account includes 1 active project and all 9 workspace panels.
+              Free account includes 1 active project and all 12 workspace modules.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3 shrink-0">
-            <Button
-              variant="outline"
-              onClick={openSampleWorkspace}
-              disabled={demoBusy}
-              className="h-10 font-mono text-xs"
-              data-testid="cta-demo-btn"
-            >
-              Inspect sample
-            </Button>
+            {!user && (
+              <Button
+                variant="outline"
+                onClick={() => navigate("/login")}
+                className="h-10 font-mono text-xs"
+                data-testid="cta-signin-btn"
+              >
+                Sign in
+              </Button>
+            )}
             <Button
               onClick={() => navigate(user ? "/dashboard" : "/login?mode=register")}
               className="h-10 px-5 bg-foreground text-background hover:bg-foreground/90 text-xs font-medium group"
