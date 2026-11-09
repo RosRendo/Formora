@@ -20,6 +20,7 @@ server/data/
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
+scratch/
 
 # Logs
 npm-debug.log*

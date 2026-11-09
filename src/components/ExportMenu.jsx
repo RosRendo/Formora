@@ -33,6 +33,10 @@ export default function ExportMenu() {
   const nav = useNavigate();
   const slug = (project?.name || "blueprint").toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
+  const upgradeNotice = (detail) => {
+    toast.error(detail, { action: { label: "View plans", onClick: () => nav("/billing") } });
+  };
+
   const run = async (what, docKind, filename) => {
     try {
       if (what === "module_md") {
@@ -43,10 +47,14 @@ export default function ExportMenu() {
         download(`${slug}-blueprint.md`, data, "text/markdown");
       } else {
         const { data } = await http.get(`/projects/${pid}/schema/code`);
+        if (data.ddl_locked) return upgradeNotice("PostgreSQL DDL & Prisma exports unlock on Pro. Module .md exports stay available on Starter.");
         what === "sql" ? download(`${slug}-schema.sql`, data.sql) : download(`schema.prisma`, data.prisma);
       }
       toast.success("Export downloaded");
     } catch (e) {
+      if (e?.response?.data?.code === "BUNDLE_EXPORT_LOCKED") {
+        return upgradeNotice(e.response.data.detail);
+      }
       toast.error(errMsg(e));
     }
   };

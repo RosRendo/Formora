@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { SEED_USER, SEED_PROJECT, SEED_ARTIFACTS, SEED_DECISIONS } from "./seedData.js";
+import { SEED_USER } from "./seedData.js";
 import {
   generateSql,
   generatePrisma,
@@ -24,6 +24,7 @@ import {
   verifyLemonSqueezySignature,
   createCheckoutSession,
   handleLemonSqueezyWebhookEvent,
+  syncUserSubscriptionFromLemonSqueezy,
 } from "./billing.js";
 import {
   initializeSqliteDatabase,
@@ -36,6 +37,21 @@ import {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Auto-load .env in Node 20.6+ if not already loaded
+try {
+  if (typeof process.loadEnvFile === "function") {
+    const rootEnv = path.resolve(__dirname, "../.env");
+    const localEnv = path.resolve(__dirname, "./.env");
+    if (fs.existsSync(rootEnv)) {
+      process.loadEnvFile(rootEnv);
+    } else if (fs.existsSync(localEnv)) {
+      process.loadEnvFile(localEnv);
+    }
+  }
+} catch {
+  // Ignore if already loaded or missing
+}
 
 const IS_PROD = process.env.NODE_ENV === "production";
 if (IS_PROD && (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32)) {
@@ -119,55 +135,13 @@ const checkoutLimiter = createRateLimiter({
 
 // --- Relational SQLite WAL Persistence Initialization ---
 function createInitialSeedState() {
-  const now = new Date().toISOString();
-  const seedProj = {
-    ...SEED_PROJECT,
-    user_id: SEED_USER.id,
-  };
   return {
-    users: [
-      {
-        ...SEED_USER,
-        plan: "pro",
-        password_hash: bcrypt.hashSync(SEED_USER.password, 10),
-        created_at: now,
-        updated_at: now,
-      },
-    ],
-    projects: [seedProj],
-    artifacts: {
-      [SEED_PROJECT.id]: SEED_ARTIFACTS,
-    },
-    artifact_versions: {
-      [SEED_PROJECT.id]: {
-        brief: [{ version_number: 1, content: SEED_ARTIFACTS.brief?.content, summary: "Initial brief approved", created_at: now }],
-        spec: [{ version_number: 1, content: SEED_ARTIFACTS.spec?.content, summary: "Product requirements spec", created_at: now }],
-        features: [{ version_number: 1, content: SEED_ARTIFACTS.features?.content, summary: "Initial feature list", created_at: now }],
-        architecture: [{ version_number: 1, content: SEED_ARTIFACTS.architecture?.content, summary: "Initial topology", created_at: now }],
-        schema: [{ version_number: 1, content: SEED_ARTIFACTS.schema?.content, summary: "PostgreSQL initial tables", created_at: now }],
-        api: [{ version_number: 1, content: SEED_ARTIFACTS.api?.content, summary: "REST API endpoints", created_at: now }],
-        roadmap: [{ version_number: 1, content: SEED_ARTIFACTS.roadmap?.content, summary: "Tasks roadmap", created_at: now }],
-      },
-    },
-    decisions: {
-      [SEED_PROJECT.id]: SEED_DECISIONS,
-    },
-    ai_jobs: {
-      [SEED_PROJECT.id]: [
-        {
-          id: "job-seed-api",
-          workflow: "api",
-          workflow_id: "api",
-          target_kind: "api",
-          status: "applied",
-          input_chars: 1840,
-          output_chars: 4120,
-          duration_ms: 2100,
-          notes: "Generated 7 REST endpoints matching book club organizer criteria.",
-          created_at: now,
-        },
-      ],
-    },
+    users: [],
+    projects: [],
+    artifacts: {},
+    artifact_versions: {},
+    decisions: {},
+    ai_jobs: {},
     chats: {},
     module_docs: {},
     processed_webhooks: [],
@@ -258,136 +232,29 @@ if (backfilledPhase2) {
   saveDb();
 }
 
-// Ensure demo account (demo@blueprintos.dev / Blueprint123!) and its sample workspace always exist
-function ensureDemoAccountAndSample() {
-  const now = new Date().toISOString();
-  let demoUser = DB.users.find(
-    (u) => u.id === SEED_USER.id || u.email?.toLowerCase() === SEED_USER.email.toLowerCase()
-  );
-
-  if (!demoUser) {
-    demoUser = {
-      id: SEED_USER.id,
-      email: SEED_USER.email.toLowerCase(),
-      name: SEED_USER.name,
-      picture: null,
-      plan: "pro",
-      auth_provider: "password",
-      password_hash: bcrypt.hashSync(SEED_USER.password, 10),
-      created_at: now,
-      updated_at: now,
-    };
-    DB.users.push(demoUser);
-  } else {
-    demoUser.name = SEED_USER.name;
-    demoUser.auth_provider = "password";
-    demoUser.password_hash = bcrypt.hashSync(SEED_USER.password, 10);
-    demoUser.plan = demoUser.plan || "pro";
+// --- Demo account purge: production ships without the seeded demo user/project ---
+function purgeDemoAccount() {
+  const demoUserId = SEED_USER.id;
+  const demoProjectIds = DB.projects
+    .filter((p) => p.user_id === demoUserId || p.is_sample)
+    .map((p) => p.id);
+  DB.projects = DB.projects.filter((p) => p.user_id !== demoUserId && !p.is_sample);
+  for (const pid of demoProjectIds) {
+    delete DB.artifacts[pid];
+    delete DB.artifact_versions[pid];
+    delete DB.decisions[pid];
+    delete DB.ai_jobs[pid];
+    delete DB.chats[pid];
   }
-
-  // Ensure sample project exists for demoUser
-  let sampleProj = DB.projects.find(
-    (p) => p.id === SEED_PROJECT.id || (p.user_id === demoUser.id && p.is_sample)
-  );
-
-  if (!sampleProj) {
-    sampleProj = {
-      ...SEED_PROJECT,
-      id: SEED_PROJECT.id,
-      user_id: demoUser.id,
-      is_sample: true,
-      created_at: now,
-      updated_at: now,
-    };
-    DB.projects.unshift(sampleProj);
-  } else {
-    sampleProj.user_id = demoUser.id;
-    sampleProj.is_sample = true;
+  DB.users = DB.users.filter((u) => u.id !== demoUserId && u.email?.toLowerCase() !== SEED_USER.email.toLowerCase());
+  if (DB.subscriptions) {
+    delete DB.subscriptions[demoUserId];
+    DB.users.forEach((u) => {
+      if (u.id === demoUserId) delete u.subscription;
+    });
   }
-
-  // Ensure artifacts exist for sample project
-  if (!DB.artifacts[sampleProj.id] || Object.keys(DB.artifacts[sampleProj.id]).length === 0) {
-    DB.artifacts[sampleProj.id] = JSON.parse(JSON.stringify(SEED_ARTIFACTS));
-  }
-
-  // Ensure artifact versions exist
-  if (!DB.artifact_versions[sampleProj.id]) {
-    DB.artifact_versions[sampleProj.id] = {};
-  }
-  for (const [kind, art] of Object.entries(DB.artifacts[sampleProj.id])) {
-    if (
-      art?.content &&
-      (!DB.artifact_versions[sampleProj.id][kind] || !DB.artifact_versions[sampleProj.id][kind].length)
-    ) {
-      DB.artifact_versions[sampleProj.id][kind] = [
-        {
-          version_number: 1,
-          content: JSON.parse(JSON.stringify(art.content)),
-          summary: `Initial ${kind} blueprint approved`,
-          created_at: now,
-        },
-      ];
-    }
-  }
-
-  // Ensure decisions exist
-  if (!DB.decisions[sampleProj.id] || DB.decisions[sampleProj.id].length === 0) {
-    DB.decisions[sampleProj.id] = JSON.parse(JSON.stringify(SEED_DECISIONS));
-  }
-
-  // Ensure AI jobs exist
-  if (!DB.ai_jobs[sampleProj.id] || DB.ai_jobs[sampleProj.id].length === 0) {
-    DB.ai_jobs[sampleProj.id] = [
-      {
-        id: "job-seed-api",
-        workflow: "api",
-        workflow_id: "api",
-        target_kind: "api",
-        status: "applied",
-        input_chars: 1840,
-        output_chars: 4120,
-        duration_ms: 2100,
-        notes: "Generated 7 REST endpoints matching book club organizer criteria.",
-        created_at: now,
-      },
-    ];
-  }
-
-  // Ensure chats exist
-  if (!DB.chats[sampleProj.id] || DB.chats[sampleProj.id].length === 0) {
-    DB.chats[sampleProj.id] = [
-      {
-        id: "msg-seed-1",
-        role: "user",
-        content: "Build Shelfmate: a book club organizer to pick books, schedule meetups, and keep discussion notes.",
-        targets: ["auto"],
-        created_at: now,
-      },
-      {
-        id: "msg-seed-2",
-        role: "assistant",
-        content: "Decomposed and placed into Database ERD, REST API, Architecture, User Flows, Wireframes, Security, and Testing.",
-        engine: "Blueprint Engine",
-        applied: true,
-        placements: [
-          { kind: "schema", label: "Database Schema", path: "database", applied: true },
-          { kind: "api", label: "REST API Contracts", path: "api", applied: true },
-          { kind: "architecture", label: "Architecture Topology", path: "architecture", applied: true },
-          { kind: "flows", label: "User Flows", path: "flows", applied: true },
-          { kind: "ui", label: "UI Wireframes", path: "ui", applied: true },
-          { kind: "security", label: "Security Plan", path: "security", applied: true },
-          { kind: "testing", label: "Testing Center", path: "testing", applied: true },
-          { kind: "deployment", label: "Deployment Center", path: "deployment", applied: true },
-        ],
-        created_at: now,
-      },
-    ];
-  }
-
-  backfillMissingPhase2ForProject(sampleProj);
 }
-
-ensureDemoAccountAndSample();
+purgeDemoAccount();
 saveDb();
 
 function createEmptyArtifacts(pid, name, description, answers = {}) {
@@ -1585,26 +1452,46 @@ app.patch("/api/projects/:pid/tasks/:taskId", (req, res) => {
 
 // ========================
 // SCHEMA DDL & EXPORTS
+// GENERATED CODE (SQL / PRISMA) IS A PRO PAYWALL — Starter (free) plan keeps the
+// visual ERD + validation but never receives generated DDL/Prisma payloads.
 // ========================
+
+function ddlLockedFor(req) {
+  const planConfig = PLANS[req.user?.plan || "free"] || PLANS.free;
+  return !planConfig.limits.ddl_exports;
+}
 
 app.post("/api/projects/:pid/schema/preview", (req, res) => {
   const schema = req.body?.content || {};
+  const issues = validateSchema(schema);
+  if (ddlLockedFor(req)) {
+    return res.json({ sql: null, prisma: null, issues, ddl_locked: true });
+  }
   const sql = generateSql(schema);
   const prisma = generatePrisma(schema);
-  const issues = validateSchema(schema);
   res.json({ sql, prisma, issues });
 });
 
 app.get("/api/projects/:pid/schema/code", (req, res) => {
   const arts = DB.artifacts[req.params.pid];
   const schema = arts?.schema?.content || {};
+  const issues = validateSchema(schema);
+  if (ddlLockedFor(req)) {
+    return res.json({ sql: null, prisma: null, issues, ddl_locked: true });
+  }
   const sql = generateSql(schema);
   const prisma = generatePrisma(schema);
-  const issues = validateSchema(schema);
   res.json({ sql, prisma, issues });
 });
 
 app.get("/api/projects/:pid/export/markdown", (req, res) => {
+  const bundlePlan = PLANS[req.user?.plan || "free"] || PLANS.free;
+  if (!bundlePlan.limits.bundle_export) {
+    return res.status(403).json({
+      code: "BUNDLE_EXPORT_LOCKED",
+      detail: "The combined blueprint bundle unlocks on Pro. Individual module .md exports are available on every plan.",
+    });
+  }
   const p = req.project;
   const arts = DB.artifacts[req.params.pid] || {};
   const decs = DB.decisions[req.params.pid] || [];
@@ -1764,7 +1651,19 @@ app.get("/api/billing/plans", (req, res) => {
   });
 });
 
-app.get("/api/billing/subscription", authRequired, (req, res) => {
+app.get("/api/billing/subscription", authRequired, async (req, res) => {
+  // If user is currently free or explicit sync requested, auto-sync from Lemon Squeezy API
+  if (
+    (!req.user.plan || req.user.plan === "free" || req.query.sync === "true") &&
+    process.env.LEMONSQUEEZY_API_KEY
+  ) {
+    try {
+      await syncUserSubscriptionFromLemonSqueezy(req.user, DB, saveDb);
+    } catch (e) {
+      console.warn("Auto-sync subscription skipped:", e.message);
+    }
+  }
+
   const userPlan = req.user.plan || "free";
   const planConfig = PLANS[userPlan] || PLANS.free;
   const activeProjects = DB.projects.filter(
@@ -1783,6 +1682,20 @@ app.get("/api/billing/subscription", authRequired, (req, res) => {
     limits: planConfig.limits,
     transactions: userTransactions,
   });
+});
+
+app.post("/api/billing/sync", authRequired, async (req, res) => {
+  try {
+    const sub = await syncUserSubscriptionFromLemonSqueezy(req.user, DB, saveDb);
+    res.json({
+      success: true,
+      plan: req.user.plan || "free",
+      subscription: req.user.subscription || null,
+      synced: !!sub,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Failed to sync subscription" });
+  }
 });
 
 app.post("/api/billing/checkout", authRequired, checkoutLimiter, async (req, res) => {

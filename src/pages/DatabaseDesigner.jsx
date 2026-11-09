@@ -3,7 +3,8 @@ import { useDraft } from "@/lib/useDraft";
 import { ReactFlow, Background, Controls, Handle, Position, applyNodeChanges, ReactFlowProvider, useReactFlow, MarkerType } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { toPng } from "html-to-image";
-import { Database, Plus, Copy, Download, AlertCircle, CheckCircle2, Key, Maximize, Image } from "lucide-react";
+import { Database, Plus, Copy, Download, AlertCircle, CheckCircle2, Key, Maximize, Image, Lock } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -58,11 +59,21 @@ function CodePanel({ code, issues }) {
       </TabsContent>
       {["sql", "prisma"].map((k) => (
         <TabsContent key={k} value={k} className="relative flex-1 min-h-0 overflow-hidden">
-          <div className="absolute right-3 top-2 z-10 flex gap-1">
-            <Button size="sm" variant="outline" className="h-7 bg-card" onClick={() => copy(code[k])} data-testid={`erd-copy-${k}-btn`}><Copy className="h-3 w-3" /></Button>
-            <Button size="sm" variant="outline" className="h-7 bg-card" onClick={() => download(k === "sql" ? "schema.sql" : "schema.prisma", code[k])} data-testid={`erd-download-${k}-btn`}><Download className="h-3 w-3" /></Button>
-          </div>
-          <pre className="h-full overflow-auto px-4 py-3 text-[11px] leading-relaxed font-mono" data-testid={`erd-code-${k}`}>{code[k]}</pre>
+          {code.ddl_locked ? (
+            <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full border bg-muted/60"><Lock className="h-4 w-4 text-muted-foreground" /></div>
+              <p className="text-sm text-muted-foreground">Generated {k === "sql" ? "PostgreSQL DDL" : "Prisma schema"} is part of the Pro plan.</p>
+              <Link to="/billing" className="text-sm font-medium underline underline-offset-2" data-testid="erd-upgrade-link">Upgrade to export code</Link>
+            </div>
+          ) : (
+            <>
+              <div className="absolute right-3 top-2 z-10 flex gap-1">
+                <Button size="sm" variant="outline" className="h-7 bg-card" onClick={() => copy(code[k])} data-testid={`erd-copy-${k}-btn`}><Copy className="h-3 w-3" /></Button>
+                <Button size="sm" variant="outline" className="h-7 bg-card" onClick={() => download(k === "sql" ? "schema.sql" : "schema.prisma", code[k])} data-testid={`erd-download-${k}-btn`}><Download className="h-3 w-3" /></Button>
+              </div>
+              <pre className="h-full overflow-auto px-4 py-3 text-[11px] leading-relaxed font-mono" data-testid={`erd-code-${k}`}>{code[k]}</pre>
+            </>
+          )}
         </TabsContent>
       ))}
     </Tabs>

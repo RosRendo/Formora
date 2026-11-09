@@ -1,0 +1,41 @@
+services:
+  formora:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: formora:latest
+    container_name: formora-saas
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGIN=${CORS_ORIGIN:-https://app.formora.dev}
+      - FRONTEND_URL=${FRONTEND_URL:-https://app.formora.dev}
+      - DATABASE_PATH=/app/server/data/formora.sqlite
+      # Lemon Squeezy Merchant-of-Record
+      - LEMONSQUEEZY_API_KEY=${LEMONSQUEEZY_API_KEY}
+      - LEMONSQUEEZY_STORE_ID=${LEMONSQUEEZY_STORE_ID}
+      - LEMONSQUEEZY_WEBHOOK_SECRET=${LEMONSQUEEZY_WEBHOOK_SECRET}
+      - LEMONSQUEEZY_PRO_MONTHLY_VARIANT_ID=${LEMONSQUEEZY_PRO_MONTHLY_VARIANT_ID}
+      - LEMONSQUEEZY_PRO_YEARLY_VARIANT_ID=${LEMONSQUEEZY_PRO_YEARLY_VARIANT_ID}
+      - LEMONSQUEEZY_TEAM_MONTHLY_VARIANT_ID=${LEMONSQUEEZY_TEAM_MONTHLY_VARIANT_ID}
+      - LEMONSQUEEZY_TEAM_YEARLY_VARIANT_ID=${LEMONSQUEEZY_TEAM_YEARLY_VARIANT_ID}
+      # Server-Managed AI (OpenRouter / Gemini / Groq / OpenAI)
+      - AI_PROVIDER=${AI_PROVIDER:-}
+      - AI_MODEL=${AI_MODEL:-}
+      - AI_API_KEY=${AI_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - ALLOW_USER_LLM_CONFIG=${ALLOW_USER_LLM_CONFIG:-true}
+    volumes:
+      - formora_data:/app/server/data
+
+volumes:
+  formora_data:
+    driver: local
+

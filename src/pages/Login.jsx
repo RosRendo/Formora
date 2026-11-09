@@ -155,22 +155,6 @@ export default function Login() {
     setBusy(false);
   };
 
-  const loginDemo = async () => {
-    setBusy(true);
-    setErr("");
-    try {
-      const { data } = await http.post("/auth/login", {
-        email: "demo@blueprintos.dev",
-        password: "Blueprint123!",
-      });
-      setUser(data);
-      nav(targetDestination);
-    } catch (ex) {
-      setErr(errMsg(ex));
-    }
-    setBusy(false);
-  };
-
   const google = () => {
     // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
     const redirectUrl = window.location.origin + "/dashboard";
@@ -303,16 +287,6 @@ export default function Login() {
             {mode === "login"
               ? "No account? Create one"
               : "Already have an account? Sign in"}
-          </button>
-
-          <button
-            type="button"
-            disabled={busy}
-            onClick={loginDemo}
-            className="font-mono text-xs text-muted-foreground hover:text-foreground text-left transition-colors"
-            data-testid="login-demo-account-btn"
-          >
-            Demo account: <span className="underline underline-offset-2">demo@blueprintos.dev</span> &rarr;
           </button>
         </div>
       </div>

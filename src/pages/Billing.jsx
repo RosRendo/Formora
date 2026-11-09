@@ -24,15 +24,18 @@ export default function Billing() {
   const [interval, setInterval] = useState("monthly");
   const [actionBusy, setActionBusy] = useState(null);
 
-  const fetchBillingData = async () => {
+  const fetchBillingData = async (sync = false) => {
     try {
       setLoading(true);
       const [plansRes, subRes] = await Promise.all([
         http.get("/billing/plans"),
-        http.get("/billing/subscription"),
+        http.get(`/billing/subscription${sync ? "?sync=true" : ""}`),
       ]);
       setPlans(plansRes.data.plans || {});
       setSubData(subRes.data || null);
+      if (sync && subRes.data?.plan && subRes.data?.plan !== "free") {
+        toast.success(`Active plan synced: ${subRes.data.plan_name}`);
+      }
     } catch {
       toast.error("Failed to load subscription information");
     } finally {
@@ -41,9 +44,10 @@ export default function Billing() {
   };
 
   useEffect(() => {
-    fetchBillingData();
-    if (searchParams.get("checkout") === "success") {
-      toast.success("Checkout completed. Subscription status is syncing.");
+    const isSuccess = searchParams.get("checkout") === "success";
+    fetchBillingData(isSuccess);
+    if (isSuccess) {
+      toast.success("Checkout completed. Subscription verified.");
     }
   }, []);
 
@@ -96,8 +100,8 @@ export default function Billing() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={fetchBillingData}
-          title="Refresh subscription status"
+          onClick={() => fetchBillingData(true)}
+          title="Sync subscription status with Lemon Squeezy"
           data-testid="billing-refresh-btn"
         >
           <RefreshCw className="h-4 w-4 text-muted-foreground" />

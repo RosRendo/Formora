@@ -4,6 +4,7 @@ export const SEED_USER = {
   email: "demo@blueprintos.dev",
   name: "Demo Founder",
   password: "Blueprint123!",
+  plan: "pro",
   auth_provider: "password"
 };
 

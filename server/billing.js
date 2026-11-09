@@ -1,4 +1,25 @@
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Auto-load .env in Node 20.6+ if not already loaded
+try {
+  if (typeof process.loadEnvFile === "function") {
+    const rootEnv = path.resolve(__dirname, "../.env");
+    const localEnv = path.resolve(__dirname, "./.env");
+    if (fs.existsSync(rootEnv)) {
+      process.loadEnvFile(rootEnv);
+    } else if (fs.existsSync(localEnv)) {
+      process.loadEnvFile(localEnv);
+    }
+  }
+} catch {
+  // Ignore if already loaded or missing
+}
 
 export const PLANS = {
   free: {
@@ -9,6 +30,7 @@ export const PLANS = {
     limits: {
       max_active_projects: 1,
       modular_markdown_exports: true,
+      bundle_export: false,
       ddl_exports: false,
       ai_architect_priority: "standard",
       team_seats: 1,
@@ -28,6 +50,7 @@ export const PLANS = {
     limits: {
       max_active_projects: Infinity,
       modular_markdown_exports: true,
+      bundle_export: true,
       ddl_exports: true,
       ai_architect_priority: "high",
       team_seats: 1,
@@ -39,9 +62,11 @@ export const PLANS = {
       "Priority multi-provider AI Architect",
       "Version history & impact cascade tracking",
     ],
-    lemon_variant_ids: {
-      monthly: process.env.LEMONSQUEEZY_PRO_MONTHLY_VARIANT_ID || "",
-      yearly: process.env.LEMONSQUEEZY_PRO_YEARLY_VARIANT_ID || "",
+    get lemon_variant_ids() {
+      return {
+        monthly: process.env.LEMONSQUEEZY_PRO_MONTHLY_VARIANT_ID || "",
+        yearly: process.env.LEMONSQUEEZY_PRO_YEARLY_VARIANT_ID || "",
+      };
     },
   },
   team: {
@@ -52,6 +77,7 @@ export const PLANS = {
     limits: {
       max_active_projects: Infinity,
       modular_markdown_exports: true,
+      bundle_export: true,
       ddl_exports: true,
       ai_architect_priority: "dedicated",
       team_seats: 10,
@@ -63,9 +89,11 @@ export const PLANS = {
       "Centralized invoicing & VAT receipts",
       "Priority engineering support",
     ],
-    lemon_variant_ids: {
-      monthly: process.env.LEMONSQUEEZY_TEAM_MONTHLY_VARIANT_ID || "",
-      yearly: process.env.LEMONSQUEEZY_TEAM_YEARLY_VARIANT_ID || "",
+    get lemon_variant_ids() {
+      return {
+        monthly: process.env.LEMONSQUEEZY_TEAM_MONTHLY_VARIANT_ID || "",
+        yearly: process.env.LEMONSQUEEZY_TEAM_YEARLY_VARIANT_ID || "",
+      };
     },
   },
 };
@@ -100,9 +128,16 @@ export async function createCheckoutSession({ user, planId, interval = "monthly"
   const storeId = process.env.LEMONSQUEEZY_STORE_ID;
   const variantId = plan.lemon_variant_ids?.[interval];
 
-  if (!apiKey || !storeId || !variantId || variantId.startsWith("ls_var_")) {
+  if (!apiKey || !storeId) {
     throw new Error(
-      "Lemon Squeezy live checkout is not configured yet. Set LEMONSQUEEZY_API_KEY, LEMONSQUEEZY_STORE_ID, and variant IDs in .env."
+      "Lemon Squeezy API credentials missing. Please set LEMONSQUEEZY_API_KEY and LEMONSQUEEZY_STORE_ID in .env."
+    );
+  }
+
+  if (!variantId || variantId.startsWith("ls_var_")) {
+    const varName = `LEMONSQUEEZY_${planId.toUpperCase()}_${interval.toUpperCase()}_VARIANT_ID`;
+    throw new Error(
+      `Variant ID for ${plan.name} (${interval}) is missing in .env (set ${varName} to your Lemon Squeezy variant ID).`
     );
   }
 
@@ -314,4 +349,65 @@ export function handleLemonSqueezyWebhookEvent(DB, eventPayload, saveDb) {
     user_id: user.id,
     plan: user.plan,
   };
+}
+
+/**
+ * Directly syncs user subscription from Lemon Squeezy API
+ * Guarantees immediate plan upgrade even if webhooks are delayed or running on localhost.
+ */
+export async function syncUserSubscriptionFromLemonSqueezy(user, DB, saveDb) {
+  const apiKey = process.env.LEMONSQUEEZY_API_KEY;
+  const storeId = process.env.LEMONSQUEEZY_STORE_ID;
+  if (!apiKey || !user?.email) return null;
+
+  try {
+    const url = `https://api.lemonsqueezy.com/v1/subscriptions?filter[user_email]=${encodeURIComponent(
+      user.email
+    )}${storeId ? `&filter[store_id]=${storeId}` : ""}`;
+    const res = await fetch(url, {
+      headers: {
+        Accept: "application/vnd.api+json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+    if (!res.ok) return null;
+
+    const body = await res.json();
+    const subs = body.data || [];
+    const activeSub = subs.find(
+      (s) => s.attributes?.status === "active" || s.attributes?.status === "on_trial"
+    );
+
+    if (activeSub) {
+      const attrs = activeSub.attributes;
+      const variantName = (attrs.variant_name || attrs.product_name || "").toLowerCase();
+      const isTeam = variantName.includes("team");
+      const targetPlan = isTeam ? "team" : "pro";
+      const isYearly = variantName.includes("year") || variantName.includes("annual");
+      const targetInterval = isYearly ? "yearly" : "monthly";
+
+      user.plan = targetPlan;
+      user.subscription = {
+        subscription_id: String(activeSub.id),
+        customer_id: String(attrs.customer_id),
+        plan: targetPlan,
+        interval: targetInterval,
+        status: attrs.status,
+        renews_at: attrs.renews_at || null,
+        current_period_end: attrs.renews_at || attrs.ends_at,
+        customer_portal_url: attrs.urls?.customer_portal || null,
+        created_at: attrs.created_at,
+        updated_at: new Date().toISOString(),
+      };
+
+      DB.subscriptions = DB.subscriptions || {};
+      DB.subscriptions[user.id] = user.subscription;
+
+      if (saveDb) saveDb();
+      return user.subscription;
+    }
+  } catch (err) {
+    console.warn("[Billing Sync] Error querying Lemon Squeezy API:", err.message);
+  }
+  return null;
 }

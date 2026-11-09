@@ -87,7 +87,7 @@ Starts both the Express API (`http://localhost:3001`) and Vite React SPA (`http:
 ```bash
 npm run dev
 ```
-- **Demo Account**: `demo@blueprintos.dev` / `Blueprint123!` (pre-seeded with the full 12-module **Shelfmate** blueprint).
+- **No demo account**: production ships without any seeded credentials (the old `demo@blueprintos.dev` account is purged on server boot).
 
 ### 4. Production Build & Single-Port Server
 Builds the optimized frontend bundle into `dist/` and serves both `/api/*` and the SPA from Express:
