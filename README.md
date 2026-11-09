@@ -1,105 +1,178 @@
-# Formora — Architectural Blueprint OS
+# 📋 Formora — Enterprise Specification Engine & Blueprint Studio
 
-Formora turns an unstructured software idea into **12 typed, versioned, referentially linked engineering blueprints** (`Brief`, `Requirements`, `Features`, `User Flows`, `UI/UX Blueprint`, `Architecture`, `Database ERD`, `API Explorer`, `Security Plan`, `Roadmap`, `Testing Center`, and `Deployment Center`) alongside runnable PostgreSQL DDL, Prisma schemas, separated GitHub-Flavored Markdown specs (`01-brief.md` through `14-deployment-guide.md`), multi-stage Dockerfiles, and GitHub Actions CI/CD workflows.
+<div align="center">
 
----
+![Next.js](https://img.shields.io/badge/Next.js-16_App_Router-black.svg?logo=next.js)
+![NestJS](https://img.shields.io/badge/NestJS-11.0-E0234E.svg?logo=nestjs)
+![SQLite](https://img.shields.io/badge/SQLite-WAL_Mode-003B57.svg?logo=sqlite)
+![Prisma](https://img.shields.io/badge/Prisma-6.0-2D3748.svg?logo=prisma)
+![Tailwind](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC.svg?logo=tailwind-css)
+![pnpm](https://img.shields.io/badge/maintained%20with-pnpm-f69220.svg?logo=pnpm)
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
-## Core Architecture & Phases
+**Interactive software blueprint studio and enterprise specification compiler converting product requirements into production architecture schemas.**
 
-### Phase 1 — Core Blueprint Engine, Production Hardening & SaaS Billing
-- **Kinetic Swiss Landing Page (`/`)**: Autonomous prompt-to-module router workbench, live referential integrity mutation simulator, separated `.md` spec explorer, and monthly/annual SaaS pricing.
-- **Core Blueprint Panels**:
-  - **Project Brief (`/p/:pid/brief`)**: Constraints, target audience, stack choices, and assumptions.
-  - **Product Requirements (`/p/:pid/requirements`)**: Roles, goals, functional & non-functional requirements, and risks.
-  - **Features & Stories (`/p/:pid/features`)**: MVP vs. post-launch prioritization, complexity scoring, and acceptance criteria.
-  - **Tech Stack Evaluator (`/p/:pid/stack`)**: Stack selection matrix derived from brief & topology.
-  - **Architecture Canvas (`/p/:pid/architecture`)**: Interactive `@xyflow/react` service topology graph with live architecture linting.
-  - **Database Designer (`/p/:pid/database`)**: Visual ERD canvas, foreign-key references, schema validator, and PostgreSQL `.sql` + `schema.prisma` compilers.
-  - **API Explorer (`/p/:pid/api`)**: Typed HTTP route contracts linked directly to features and schema entities.
-  - **Roadmap (`/p/:pid/roadmap`)**: Dependency-ordered vertical slice delivery tasks with upstream drift detection.
-  - **Decision Log (`/p/:pid/decisions`)**: Chronological Architecture Decision Records (ADRs).
-- **Relational SQLite WAL Persistence (`server/database.js`)**:
-  - Zero-external-dependency relational database built on Node's native `node:sqlite` (`DatabaseSync`) with `PRAGMA journal_mode = WAL`, `PRAGMA foreign_keys = ON`, and atomic transactions across 11 normalized tables (`users`, `sessions`, `projects`, `artifacts`, `artifact_versions`, `decisions`, `ai_jobs`, `chat_messages`, `module_notes`, `subscriptions`, `processed_webhooks`).
-- **Security & Auth Hardening (`server/server.js`)**:
-  - `HttpOnly` + `SameSite=Lax` JWT access cookies paired with single-use SHA-256 refresh token rotation (`jti` consumption & session revocation on logout).
-  - Centralized multi-tenant ownership middleware (`app.use("/api/projects/:pid", authRequired, requireProjectAccess)`) preventing cross-tenant IDOR across all project endpoints.
-  - Sliding-window rate limiters on auth, AI generation, and billing checkout routes.
-- **Lemon Squeezy Merchant-of-Record Billing (`server/billing.js`, `/billing`)**:
-  - Tier enforcement (`Starter` free tier, `Pro` $19/mo, `Team` $49/mo), hosted checkout session creation, customer portal links, and timing-safe HMAC-SHA256 idempotent webhook ingestion (`POST /api/billing/webhook`).
+[System Architecture](#-system-architecture) • [Database ERD](#-database-erd-13-table-relational-schema) • [Synthesis Flow](#-specification-synthesis-workflow) • [Quick Start](#-quick-start)
 
-### Phase 2 — Behavioral, UI, Security & QA Engineering Modules
-- **User Flows (`/p/:pid/flows`)**: Role-based step-by-step journeys (`trigger` → `screen` → `system` → `decision` → `outcome`) with explicit failure/edge-case recovery branches and Mermaid `flowchart TD` export (`10-user-flows.md`).
-- **UI/UX Blueprint (`/p/:pid/ui`)**: Screen inventory, Desktop/Mobile live wireframe previewer, interactive **UI State Simulator** (`Default`, `Loading`, `Empty`, `Error`, `Success`), component map, and CSS `:root` design tokens (`11-ui-blueprint.md`).
-- **Security Plan (`/p/:pid/security`)**: Explicit **Implemented vs. Planned** security posture matrix across `Auth & Session`, `Access Control (RBAC/IDOR)`, `Data Protection`, `Validation & Rate Limiting`, and `Webhooks & Secrets`, paired with a STRIDE-lite threat mitigation register (`12-security-plan.md`).
-- **Testing Center (`/p/:pid/testing`)**: Traceable `Unit`, `API Integration`, and `End-to-End` test suites linked to features, endpoints, and entities, with live feature/API coverage meters and runnable Vitest + Playwright `.spec.ts` skeleton export (`13-testing-plan.md`).
-
-### Phase 3 — Deployment Center & Release Automation
-- **Deployment Center (`/p/:pid/deployment`)**:
-  - **Deployment Readiness Review**: Weighted Go-Live Readiness score (`0%–100%`) auditing upstream 11-module approvals, schema/architecture drift flags, critical security controls, test coverage, and interactive pre-flight launch gates.
-  - **Environment Variable Catalog**: Stack-derived `UPPER_SNAKE_CASE` environment catalog (`Scope`, `Required`, `Secret`, `Example`, `Purpose`) tailored to the project's database, auth, payment provider (Lemon Squeezy / ABA PayWay KHQR / Stripe), Redis/worker nodes, and hosting target, with 1-click `.env.example` export.
-  - **Step-by-Step Deployment Runbook**: Staging & Production environment target cards, ordered CLI execution steps with verification commands, and an emergency rollback protocol (`14-deployment-guide.md`).
-  - **Infrastructure Bundle Exporters**: Ready-to-commit multi-stage Node 22 Alpine `Dockerfile` (with `/api/health` `HEALTHCHECK`) and GitHub Actions CI/CD workflow (`.github/workflows/deploy.yml`).
+</div>
 
 ---
 
-## Separated Markdown Specification Tree (`/p/:pid/docs`)
+## ⚡ Overview
 
-Every project continuously compiles **14 separated Markdown specifications** so developers and coding agents (`Cursor`, `Claude Code`, `Antigravity`) can load focused domain context instead of a single monolithic document:
-
-| File | Source Module |
-| :--- | :--- |
-| `01-brief.md` | Project Brief |
-| `02-requirements.md` | Product Requirements (PRD) |
-| `03-features.md` | Features & User Stories |
-| `04-architecture.md` | System Architecture & Topology |
-| `05-database.md` | Database Schema & ERD |
-| `06-api.md` | REST API Contracts |
-| `07-roadmap.md` | Vertical-Slice Delivery Roadmap |
-| `08-decisions.md` | Architecture Decision Log (ADRs) |
-| `09-architect-notes.md` | Scoped Agent & Engineering Notes |
-| `10-user-flows.md` | User Flows & Edge-Case Branches |
-| `11-ui-blueprint.md` | UI/UX Wireframes, States & Tokens |
-| `12-security-plan.md` | Security Posture & Threat Register |
-| `13-testing-plan.md` | Unit, API & E2E Verification Suite |
-| `14-deployment-guide.md` | Deployment Readiness, Env Vars & Runbook |
+**Formora** streamlines complex product planning. It allows engineering leaders to author, validate, and compile complex software specifications across 12 discrete architectural modules, maintaining sub-millisecond querying speed via an embedded **SQLite WAL** persistence layer.
 
 ---
 
-## Quick Start
+## 🏗️ System Architecture
 
-### Prerequisites
-- **Node.js `>= 22.5`** (uses native `node:sqlite` `DatabaseSync` — tested on Node `v22.5+` / `v26.x`).
+```mermaid
+flowchart TD
+    subgraph UIStudio["🎨 Visual Blueprint Studio (Next.js 16 + React 19)"]
+        SpecEditor["Interactive Spec & Form Builder"]
+        ModuleTree["12-Module Architectural Navigation Tree"]
+        PreviewRenderer["Real-Time AST Schema Visualizer"]
+        ExportModule["Markdown / JSON / OpenAPI Exporter"]
+        
+        SpecEditor & ModuleTree & PreviewRenderer & ExportModule
+    end
+
+    subgraph BackendGateway["⚡ NestJS 11 Core Service"]
+        ValidationCore["Zod & Class-Validator Pipeline"]
+        SpecCompiler["Specification AST Synthesis Engine"]
+        VersionController["Blueprint Versioning & Diffing Manager"]
+        
+        UIStudio <--> ValidationCore
+        ValidationCore --> SpecCompiler
+        SpecCompiler --> VersionController
+    end
+
+    subgraph StorageLayer["💾 Persistence Layer (SQLite WAL)"]
+        SQLiteDB[(SQLite Database - High Concurrency WAL)]
+        PrismaClient["Prisma 6 Client"]
+        
+        VersionController <--> PrismaClient <--> SQLiteDB
+    end
+```
+
+---
+
+## 📊 Database ERD (13-Table Relational Schema)
+
+```mermaid
+erDiagram
+    PROJECTS ||--o{ SPECIFICATIONS : contains
+    SPECIFICATIONS ||--o{ MODULE_SPECS : details
+    MODULE_SPECS ||--o{ SPEC_FIELDS : defines
+    SPEC_FIELDS ||--o{ FIELD_VALIDATIONS : enforces
+    PROJECTS ||--o{ COLLABORATORS : invites
+    PROJECTS ||--o{ EXPORT_LOGS : tracks
+
+    PROJECTS {
+        string id PK "cuid"
+        string name
+        string description
+        string industry
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    SPECIFICATIONS {
+        string id PK "cuid"
+        string projectId FK
+        string version
+        string status "DRAFT | REVIEW | PUBLISHED"
+        json metadata
+        datetime createdAt
+    }
+
+    MODULE_SPECS {
+        string id PK "cuid"
+        string specificationId FK
+        string moduleType "AUTH | DATABASE | API | DEVOPS | UI"
+        string title
+        text content
+    }
+
+    SPEC_FIELDS {
+        string id PK "cuid"
+        string moduleSpecId FK
+        string fieldKey
+        string dataType
+        boolean isRequired
+    }
+
+    FIELD_VALIDATIONS {
+        string id PK "cuid"
+        string specFieldId FK
+        string ruleType
+        string ruleValue
+    }
+
+    COLLABORATORS {
+        string id PK "cuid"
+        string projectId FK
+        string email
+        string role "OWNER | EDITOR | VIEWER"
+    }
+
+    EXPORT_LOGS {
+        string id PK "cuid"
+        string projectId FK
+        string format "JSON | MARKDOWN | OPENAPI"
+        datetime exportedAt
+    }
+```
+
+---
+
+## 🔄 Specification Synthesis Workflow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Architect as 📐 System Architect
+    participant Studio as 🎨 Formora Studio
+    participant API as ⚡ NestJS API
+    participant Compiler as ⚙️ AST Compiler
+    participant SQLite as 💾 SQLite WAL
+
+    Architect->>Studio: Selects "Database & Auth" Architecture Modules
+    Studio->>API: POST /api/specs/draft { modules: ["AUTH", "DB"] }
+    API->>SQLite: Insert Specification Record
+    
+    Architect->>Studio: Defines Entities, Fields, and Security Constraints
+    Studio->>API: PATCH /api/specs/:id/fields (Batch Schema Update)
+    API->>Compiler: Synthesize Unified Abstract Syntax Tree
+    Compiler-->>API: Verified Specification AST (Zero conflicts)
+    
+    API->>SQLite: Commit Versioned Blueprint State
+    API-->>Studio: Instant Preview (Mermaid ERD + OpenAPI Spec)
+    Architect->>Studio: Click Export Production Blueprint (.json / .md)
+```
+
+---
+
+## 🚀 Quick Start
 
 ### 1. Install Dependencies
 ```bash
-npm install
+pnpm install
 ```
 
-### 2. Configure Environment
-Copy `.env.example` to `.env` and set your secrets as needed:
+### 2. Run Database Migration
 ```bash
-cp .env.example .env
+pnpm prisma db push
 ```
-Works out of the box in development without external API keys (built-in Semantic Architect + demo Lemon Squeezy simulation mode when `LEMONSQUEEZY_API_KEY` is omitted in non-production).
 
-### 3. Run in Development
-Starts both the Express API (`http://localhost:3001`) and Vite React SPA (`http://localhost:3000`):
+### 3. Start Development Server
 ```bash
-npm run dev
+pnpm run dev
 ```
-- **No demo account**: production ships without any seeded credentials (the old `demo@blueprintos.dev` account is purged on server boot).
 
-### 4. Production Build & Single-Port Server
-Builds the optimized frontend bundle into `dist/` and serves both `/api/*` and the SPA from Express:
-```bash
-npm run build
-NODE_ENV=production JWT_SECRET="$(openssl rand -hex 32)" npm start
-```
-Health probe: `GET /api/health` → `{ "ok": true, "database": { "engine": "sqlite", "journal_mode": "wal" } }`.
+Visit `http://localhost:3000` to launch Formora.
 
 ---
 
-## Tech Stack
-- **Frontend**: React 19, Vite, Tailwind CSS, Radix UI primitives, `@xyflow/react`, Lucide Icons, `IBM Plex Sans` + `JetBrains Mono`.
-- **Backend**: Node.js, Express 5, native `node:sqlite` (SQLite WAL), `jsonwebtoken`, `bcryptjs`, HMAC-SHA256 Lemon Squeezy webhooks.
-- **AI Engine**: Server-first Multi-Provider & Custom Endpoint AI Router (`server/llmProviders.js`, `server/aiArchitect.js`) supporting **Server-Managed SaaS AI** via `.env` (`AI_PROVIDER`, `AI_BASE_URL`, `AI_MODEL`, `AI_API_KEY`) across **8 providers** (`Custom OpenAI/Anthropic Endpoint`, `Google Gemini`, `OpenAI`, `Anthropic Claude`, `OpenRouter`, `DeepSeek`, `Groq`, `Ollama`), optional policy-gated user BYOK (`ALLOW_USER_LLM_CONFIG`), and a deterministic zero-key fallback engine.
+## 📄 License
+MIT License © **[Ros Rendo](https://github.com/RosRendo)**
