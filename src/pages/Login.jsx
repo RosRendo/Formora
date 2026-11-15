@@ -157,11 +157,7 @@ export default function Login() {
 
   const google = async () => {
     try {
-      const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-      const redirectUri = isLocal
-        ? `${window.location.origin}/auth/callback`
-        : "https://skemat.online/auth/callback";
-
+      const redirectUri = window.location.origin + "/auth/callback";
       const { data } = await http.get(`/auth/google/url?redirect_uri=${encodeURIComponent(redirectUri)}`);
       if (data?.configured && data?.url) {
         window.location.href = data.url;

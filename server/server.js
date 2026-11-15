@@ -700,8 +700,8 @@ app.get("/api/auth/google/url", (req, res) => {
 app.post("/api/auth/google/callback", authLimiter, async (req, res) => {
   const code = String(req.body?.code || "").trim();
   const redirectUri = String(req.body?.redirect_uri || "").trim();
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const clientId = String(process.env.GOOGLE_CLIENT_ID || "").trim();
+  const clientSecret = String(process.env.GOOGLE_CLIENT_SECRET || "").trim();
 
   if (!code) {
     return res.status(400).json({ detail: "Missing authorization code" });
@@ -710,24 +710,49 @@ app.post("/api/auth/google/callback", authLimiter, async (req, res) => {
     return res.status(500).json({ detail: "Google OAuth credentials not configured on server" });
   }
 
-  try {
-    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+  const exchangeToken = (uri) =>
+    fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         code,
         client_id: clientId,
         client_secret: clientSecret,
-        redirect_uri: redirectUri,
+        redirect_uri: uri,
         grant_type: "authorization_code",
       }),
       signal: AbortSignal.timeout(8000),
     });
 
+  try {
+    let tokenRes = await exchangeToken(redirectUri);
+
+    // If exchange fails, automatically try the alternate variant (www vs non-www)
+    if (!tokenRes.ok) {
+      let alternateUri = null;
+      if (redirectUri.includes("www.skemat.online")) {
+        alternateUri = redirectUri.replace("www.skemat.online", "skemat.online");
+      } else if (redirectUri.includes("skemat.online")) {
+        alternateUri = redirectUri.replace("skemat.online", "www.skemat.online");
+      }
+
+      if (alternateUri) {
+        const retryRes = await exchangeToken(alternateUri);
+        if (retryRes.ok) {
+          tokenRes = retryRes;
+        }
+      }
+    }
+
     if (!tokenRes.ok) {
       const errData = await tokenRes.text();
       console.warn("[OAuth] Google token exchange failed:", errData);
-      return res.status(401).json({ detail: "Failed to exchange Google authorization code" });
+      let parsedErr = {};
+      try {
+        parsedErr = JSON.parse(errData);
+      } catch {}
+      const msg = parsedErr.error_description || parsedErr.error || "Failed to exchange Google authorization code";
+      return res.status(401).json({ detail: `Google OAuth Error: ${msg}` });
     }
 
     const tokens = await tokenRes.json();
