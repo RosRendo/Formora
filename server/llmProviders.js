@@ -236,6 +236,24 @@ export function validateClientEndpointUrl(urlStr) {
   return { ok: true, url: parsed.toString().replace(/\/$/, "") };
 }
 
+const keyIndices = {};
+
+export function parseKeyList(raw) {
+  if (!raw) return [];
+  return String(raw)
+    .split(",")
+    .map((k) => k.trim())
+    .filter(Boolean);
+}
+
+export function getNextKey(provider, keys) {
+  if (!keys || keys.length === 0) return "";
+  if (keys.length === 1) return keys[0];
+  const idx = (keyIndices[provider] || 0) % keys.length;
+  keyIndices[provider] = idx + 1;
+  return keys[idx];
+}
+
 function getServerKeys() {
   const explicitProvider = String(process.env.AI_PROVIDER || "").trim().toLowerCase();
   const genericKey = process.env.AI_API_KEY || process.env.CUSTOM_AI_API_KEY || "";
@@ -247,6 +265,25 @@ function getServerKeys() {
     .filter(Boolean);
   const customHeaders = parseExtraHeaders(process.env.AI_CUSTOM_HEADERS);
 
+  const rawKeys = {
+    groq: process.env.GROQ_API_KEY || (explicitProvider === "groq" ? genericKey : ""),
+    gemini: process.env.GEMINI_API_KEY || (explicitProvider === "gemini" ? genericKey : ""),
+    openrouter: process.env.OPENROUTER_API_KEY || (explicitProvider === "openrouter" ? genericKey : ""),
+    deepseek: process.env.DEEPSEEK_API_KEY || (explicitProvider === "deepseek" ? genericKey : ""),
+    openai: process.env.OPENAI_API_KEY || (explicitProvider === "openai" ? genericKey : ""),
+    anthropic: process.env.ANTHROPIC_API_KEY || (explicitProvider === "anthropic" ? genericKey : ""),
+    ollama: explicitProvider === "ollama" ? genericKey : "",
+    custom: genericKey,
+  };
+
+  const keyPools = {};
+  const keys = {};
+  for (const [p, val] of Object.entries(rawKeys)) {
+    const list = parseKeyList(val);
+    keyPools[p] = list;
+    keys[p] = getNextKey(p, list);
+  }
+
   return {
     explicitProvider,
     genericKey,
@@ -254,17 +291,58 @@ function getServerKeys() {
     genericModel,
     extraModels,
     customHeaders,
-    keys: {
-      gemini: process.env.GEMINI_API_KEY || (explicitProvider === "gemini" ? genericKey : ""),
-      openai: process.env.OPENAI_API_KEY || (explicitProvider === "openai" ? genericKey : ""),
-      anthropic: process.env.ANTHROPIC_API_KEY || (explicitProvider === "anthropic" ? genericKey : ""),
-      openrouter: process.env.OPENROUTER_API_KEY || (explicitProvider === "openrouter" ? genericKey : ""),
-      groq: process.env.GROQ_API_KEY || (explicitProvider === "groq" ? genericKey : ""),
-      deepseek: process.env.DEEPSEEK_API_KEY || (explicitProvider === "deepseek" ? genericKey : ""),
-      ollama: explicitProvider === "ollama" ? genericKey : "",
-      custom: genericKey,
-    },
+    rawKeys,
+    keyPools,
+    keys,
   };
+}
+
+export function getServerCandidates() {
+  const srv = getServerKeys();
+  const candidates = [];
+
+  // Default priority order: Groq (ultra-fast/free) -> Gemini (high-quality/free tier) -> OpenRouter -> DeepSeek -> OpenAI -> Anthropic
+  let order = ["groq", "gemini", "openrouter", "deepseek", "openai", "anthropic"];
+  if (srv.explicitProvider && order.includes(srv.explicitProvider)) {
+    order = [srv.explicitProvider, ...order.filter((p) => p !== srv.explicitProvider)];
+  }
+
+  for (const prov of order) {
+    const pool = srv.keyPools[prov] || [];
+    if (pool.length > 0) {
+      const meta = PROVIDER_CATALOG[prov];
+      const model =
+        (prov === srv.explicitProvider && srv.genericModel) ||
+        (prov === "openrouter" ? "deepseek/deepseek-chat" : meta?.defaultModel);
+      candidates.push({
+        source: "server",
+        provider: prov,
+        protocol: meta?.protocol || "openai",
+        label: meta?.label || prov,
+        keyPool: pool,
+        apiKey: getNextKey(prov, pool),
+        baseUrl: meta?.defaultBaseUrl,
+        model,
+        extraHeaders: srv.customHeaders,
+      });
+    }
+  }
+
+  if (srv.genericBaseUrl && srv.keyPools.custom?.length) {
+    candidates.push({
+      source: "server",
+      provider: "custom",
+      protocol: String(process.env.AI_PROTOCOL || "openai").toLowerCase(),
+      label: "Custom Gateway",
+      keyPool: srv.keyPools.custom,
+      apiKey: getNextKey("custom", srv.keyPools.custom),
+      baseUrl: srv.genericBaseUrl,
+      model: srv.genericModel || "default",
+      extraHeaders: srv.customHeaders,
+    });
+  }
+
+  return candidates;
 }
 
 /**
@@ -684,19 +762,6 @@ ${activeLines.join(",\n")}
 }
 
 export async function runUnifiedLiveLlm({ message, project, existingArtifacts, targets, mode, llmConfig }) {
-  let resolvedConfig = null;
-  try {
-    resolvedConfig = resolveEffectiveLlmConfig(llmConfig);
-  } catch (cfgErr) {
-    if (llmConfig && llmConfig.strict) {
-      throw cfgErr;
-    }
-    console.warn("LLM config error, falling back to built-in Semantic Architect:", cfgErr.message);
-    return null;
-  }
-
-  if (!resolvedConfig) return null;
-
   const targetList = [...targets];
   const existingSummary = {
     project_name: project?.name,
@@ -706,24 +771,58 @@ export async function runUnifiedLiveLlm({ message, project, existingArtifacts, t
 
   const systemPrompt = buildArchitectSystemPrompt(targetList, mode, existingSummary);
 
-  try {
-    const res = await invokeStructuredLlm({
-      resolvedConfig,
-      systemPrompt,
-      userPrompt: message,
-      timeoutMs: 45000,
-    });
-    if (!res?.parsed) return null;
-    return {
-      parsed: res.parsed,
-      engine: res.engine,
-      source: res.source,
-      latencyMs: res.latencyMs,
-    };
-  } catch (err) {
-    console.warn(`Live LLM (${resolvedConfig.provider}:${resolvedConfig.model}) failed, falling back to Semantic Architect:`, err.message);
-    return null;
+  // 1. Client-supplied BYOK override:
+  if (llmConfig && llmConfig.mode === "override" && llmConfig.provider && llmConfig.provider !== "server") {
+    try {
+      const clientCfg = resolveEffectiveLlmConfig(llmConfig);
+      if (!clientCfg) return null;
+      const res = await invokeStructuredLlm({
+        resolvedConfig: clientCfg,
+        systemPrompt,
+        userPrompt: message,
+        timeoutMs: 45000,
+      });
+      if (res?.parsed) {
+        return { parsed: res.parsed, engine: res.engine, source: res.source, latencyMs: res.latencyMs };
+      }
+    } catch (err) {
+      console.warn(`[BYOK] Client LLM (${llmConfig.provider}) failed:`, err.message);
+      return null;
+    }
   }
+
+  // 2. Server-Managed Multi-Provider Auto-Failover Cascade:
+  const candidates = getServerCandidates();
+  if (!candidates || candidates.length === 0) return null;
+
+  for (const candidate of candidates) {
+    const keysToTry = candidate.keyPool && candidate.keyPool.length > 0 ? candidate.keyPool : [candidate.apiKey];
+    for (let i = 0; i < keysToTry.length; i++) {
+      const activeKey = keysToTry[i];
+      const activeConfig = { ...candidate, apiKey: activeKey };
+      try {
+        const res = await invokeStructuredLlm({
+          resolvedConfig: activeConfig,
+          systemPrompt,
+          userPrompt: message,
+          timeoutMs: 40000,
+        });
+        if (res?.parsed) {
+          return {
+            parsed: res.parsed,
+            engine: res.engine,
+            source: res.source,
+            latencyMs: res.latencyMs,
+          };
+        }
+      } catch (err) {
+        console.warn(`[AI Cascade] ${candidate.provider} (key #${i + 1}/${keysToTry.length}) error: ${err.message}. Retrying next key/provider...`);
+      }
+    }
+  }
+
+  console.warn("All server AI candidates exhausted. Gracefully falling back to Semantic Architect.");
+  return null;
 }
 
 export async function testLlmConnection(clientConfig = null) {
