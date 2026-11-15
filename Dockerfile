@@ -1,6 +1,7 @@
 # ==============================================================================
 # Skemat SaaS Production Dockerfile
 # Multi-stage build for single-container deployment (SPA + Express API)
+# Uses pnpm with pnpm-lock.yaml for fast, low-memory builds
 # Requires Node >= 22 for native node:sqlite and loadEnvFile support
 # ==============================================================================
 
@@ -9,13 +10,15 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Install full dependencies for Vite build
-COPY package*.json ./
-RUN npm ci
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Install full dependencies using project lockfile
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 # Copy source and build static bundle
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
 # --- Stage 2: Production Runtime ---
 FROM node:22-alpine AS runner
@@ -25,9 +28,11 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3001
 
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 # Install only production dependencies
-COPY package*.json ./
-RUN npm ci --omit=dev
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --prod --frozen-lockfile
 
 # Copy server code and pre-built static dist
 COPY server/ ./server/
@@ -45,4 +50,3 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD node -e "fetch('http://localhost:3001/api/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
 
 CMD ["node", "server/server.js"]
-
