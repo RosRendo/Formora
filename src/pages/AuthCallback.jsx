@@ -32,7 +32,11 @@ export default function AuthCallback() {
     };
 
     if (code) {
-      const redirect_uri = window.location.origin + "/auth/callback";
+      const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+      const redirect_uri = isLocal
+        ? `${window.location.origin}/auth/callback`
+        : "https://skemat.online/auth/callback";
+
       http.post("/auth/google/callback", { code, redirect_uri })
         .then(onSuccess)
         .catch(onError);
