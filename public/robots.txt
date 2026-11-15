@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /auth/callback
+Disallow: /p/*/settings
+
+Sitemap: https://skemat.online/sitemap.xml

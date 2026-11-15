@@ -139,6 +139,7 @@ export async function createCheckoutSession({ user, planId, interval = "monthly"
 
   return {
     checkout_url: checkoutUrl,
+    url: checkoutUrl,
     provider: "blink",
     mode: "live",
   };
