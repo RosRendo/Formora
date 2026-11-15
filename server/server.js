@@ -686,6 +686,97 @@ app.post("/api/auth/register", authLimiter, (req, res) => {
   res.json(sanitizeUser(newUser));
 });
 
+app.get("/api/auth/google/url", (req, res) => {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    return res.json({ configured: false, detail: "GOOGLE_CLIENT_ID not configured" });
+  }
+  const redirectUri = req.query.redirect_uri || `${process.env.FRONTEND_URL || "https://skemat.online"}/auth/callback`;
+  const state = crypto.randomBytes(16).toString("hex");
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=openid%20email%20profile&access_type=offline&prompt=select_account&state=${state}`;
+  res.json({ configured: true, url, client_id: clientId });
+});
+
+app.post("/api/auth/google/callback", authLimiter, async (req, res) => {
+  const code = String(req.body?.code || "").trim();
+  const redirectUri = String(req.body?.redirect_uri || "").trim();
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+  if (!code) {
+    return res.status(400).json({ detail: "Missing authorization code" });
+  }
+  if (!clientId || !clientSecret) {
+    return res.status(500).json({ detail: "Google OAuth credentials not configured on server" });
+  }
+
+  try {
+    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: "authorization_code",
+      }),
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!tokenRes.ok) {
+      const errData = await tokenRes.text();
+      console.warn("[OAuth] Google token exchange failed:", errData);
+      return res.status(401).json({ detail: "Failed to exchange Google authorization code" });
+    }
+
+    const tokens = await tokenRes.json();
+    const userinfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${tokens.access_token}` },
+      signal: AbortSignal.timeout(6000),
+    });
+
+    if (!userinfoRes.ok) {
+      return res.status(401).json({ detail: "Failed to fetch Google user profile" });
+    }
+
+    const profile = await userinfoRes.json();
+    const email = String(profile?.email || "").trim().toLowerCase();
+    if (!email || !EMAIL_RE.test(email)) {
+      return res.status(401).json({ detail: "Google profile did not include a verified email" });
+    }
+
+    const now = new Date().toISOString();
+    let user = DB.users.find((u) => u.email?.toLowerCase() === email);
+    if (!user) {
+      user = {
+        id: crypto.randomUUID(),
+        email,
+        name: String(profile?.name || email.split("@")[0]).slice(0, 120),
+        picture: profile?.picture || null,
+        plan: "free",
+        subscription: null,
+        auth_provider: "google",
+        password_hash: null,
+        created_at: now,
+        updated_at: now,
+      };
+      DB.users.push(user);
+    } else {
+      if (profile?.picture && !user.picture) user.picture = profile.picture;
+      if (profile?.name && (!user.name || user.name === "Builder")) user.name = profile.name;
+      user.updated_at = now;
+    }
+
+    saveDb();
+    setAuthCookies(res, user);
+    return res.json(sanitizeUser(user));
+  } catch (err) {
+    console.warn("[OAuth] Google OAuth callback error:", err.message);
+    return res.status(401).json({ detail: "Unable to complete Google authentication" });
+  }
+});
+
 app.post("/api/auth/google/session", authLimiter, async (req, res) => {
   const sessionId = String(req.body?.session_id || "").trim();
   if (!sessionId) {

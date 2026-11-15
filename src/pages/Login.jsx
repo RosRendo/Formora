@@ -155,8 +155,17 @@ export default function Login() {
     setBusy(false);
   };
 
-  const google = () => {
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+  const google = async () => {
+    try {
+      const redirectUri = window.location.origin + "/auth/callback";
+      const { data } = await http.get(`/auth/google/url?redirect_uri=${encodeURIComponent(redirectUri)}`);
+      if (data?.configured && data?.url) {
+        window.location.href = data.url;
+        return;
+      }
+    } catch {
+      // Fall back if server route fails or is unconfigured
+    }
     const redirectUrl = window.location.origin + "/dashboard";
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
   };
