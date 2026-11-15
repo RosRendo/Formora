@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "formora-api",
+      name: "skemat-api",
       script: "server/server.js",
       instances: 1, // Single instance preserves in-memory cache and SQLite WAL locking
       autorestart: true,

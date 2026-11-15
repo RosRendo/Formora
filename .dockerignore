@@ -1,0 +1,8 @@
+node_modules
+dist
+.git
+.vite-temp
+scratch
+server/data/*.sqlite-shm
+server/data/*.sqlite-wal
+.env.local

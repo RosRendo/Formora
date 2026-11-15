@@ -1,10 +1,10 @@
 services:
-  formora:
+  skemat:
     build:
       context: .
       dockerfile: Dockerfile
-    image: formora:latest
-    container_name: formora-saas
+    image: skemat:latest
+    container_name: skemat-saas
     restart: unless-stopped
     ports:
       - "3001:3001"
@@ -12,17 +12,16 @@ services:
       - NODE_ENV=production
       - PORT=3001
       - JWT_SECRET=${JWT_SECRET}
-      - CORS_ORIGIN=${CORS_ORIGIN:-https://app.formora.dev}
-      - FRONTEND_URL=${FRONTEND_URL:-https://app.formora.dev}
-      - DATABASE_PATH=/app/server/data/formora.sqlite
-      # Lemon Squeezy Merchant-of-Record
-      - LEMONSQUEEZY_API_KEY=${LEMONSQUEEZY_API_KEY}
-      - LEMONSQUEEZY_STORE_ID=${LEMONSQUEEZY_STORE_ID}
-      - LEMONSQUEEZY_WEBHOOK_SECRET=${LEMONSQUEEZY_WEBHOOK_SECRET}
-      - LEMONSQUEEZY_PRO_MONTHLY_VARIANT_ID=${LEMONSQUEEZY_PRO_MONTHLY_VARIANT_ID}
-      - LEMONSQUEEZY_PRO_YEARLY_VARIANT_ID=${LEMONSQUEEZY_PRO_YEARLY_VARIANT_ID}
-      - LEMONSQUEEZY_TEAM_MONTHLY_VARIANT_ID=${LEMONSQUEEZY_TEAM_MONTHLY_VARIANT_ID}
-      - LEMONSQUEEZY_TEAM_YEARLY_VARIANT_ID=${LEMONSQUEEZY_TEAM_YEARLY_VARIANT_ID}
+      - CORS_ORIGIN=${CORS_ORIGIN:-https://skemat.online,https://app.skemat.online}
+      - FRONTEND_URL=${FRONTEND_URL:-https://skemat.online}
+      - DATABASE_PATH=/app/server/data/skemat.sqlite
+      # Blink Digital Checkout (sellonblink.com)
+      - BILLING_PROVIDER=${BILLING_PROVIDER:-blink}
+      - BLINK_PRO_MONTHLY_URL=${BLINK_PRO_MONTHLY_URL}
+      - BLINK_PRO_YEARLY_URL=${BLINK_PRO_YEARLY_URL}
+      - BLINK_TEAM_MONTHLY_URL=${BLINK_TEAM_MONTHLY_URL}
+      - BLINK_TEAM_YEARLY_URL=${BLINK_TEAM_YEARLY_URL}
+      - BLINK_WEBHOOK_SECRET=${BLINK_WEBHOOK_SECRET}
       # Server-Managed AI (OpenRouter / Gemini / Groq / OpenAI)
       - AI_PROVIDER=${AI_PROVIDER:-}
       - AI_MODEL=${AI_MODEL:-}
@@ -33,9 +32,8 @@ services:
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
       - ALLOW_USER_LLM_CONFIG=${ALLOW_USER_LLM_CONFIG:-true}
     volumes:
-      - formora_data:/app/server/data
+      - skemat_data:/app/server/data
 
 volumes:
-  formora_data:
+  skemat_data:
     driver: local
-

@@ -21,6 +21,7 @@ export default function Billing() {
   const [loading, setLoading] = useState(true);
   const [subData, setSubData] = useState(null);
   const [plans, setPlans] = useState({});
+  const [provider, setProvider] = useState("blink");
   const [interval, setInterval] = useState("monthly");
   const [actionBusy, setActionBusy] = useState(null);
 
@@ -32,6 +33,9 @@ export default function Billing() {
         http.get(`/billing/subscription${sync ? "?sync=true" : ""}`),
       ]);
       setPlans(plansRes.data.plans || {});
+      if (plansRes.data.active_provider) {
+        setProvider(plansRes.data.active_provider);
+      }
       setSubData(subRes.data || null);
       if (sync && subRes.data?.plan && subRes.data?.plan !== "free") {
         toast.success(`Active plan synced: ${subRes.data.plan_name}`);
@@ -77,10 +81,10 @@ export default function Billing() {
       if (data?.portal_url && data.portal_url.startsWith("http")) {
         window.open(data.portal_url, "_blank", "noopener,noreferrer");
       } else {
-        window.open("https://app.lemonsqueezy.com/my-orders", "_blank", "noopener,noreferrer");
+        window.open("https://sellonblink.com", "_blank", "noopener,noreferrer");
       }
     } catch {
-      window.open("https://app.lemonsqueezy.com/my-orders", "_blank", "noopener,noreferrer");
+      window.open("https://sellonblink.com", "_blank", "noopener,noreferrer");
     }
   };
 
@@ -101,7 +105,7 @@ export default function Billing() {
           variant="ghost"
           size="icon"
           onClick={() => fetchBillingData(true)}
-          title="Sync subscription status with Lemon Squeezy"
+          title="Refresh subscription status"
           data-testid="billing-refresh-btn"
         >
           <RefreshCw className="h-4 w-4 text-muted-foreground" />
@@ -235,7 +239,7 @@ export default function Billing() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-2">
         <div>
           <div className="font-mono text-[10.5px] uppercase tracking-wider text-muted-foreground">
-            Plans // Lemon Squeezy Merchant of Record
+            Plans // Blink Digital Checkout
           </div>
           <h3 className="mt-1 text-lg font-semibold tracking-tight">Workspace Tiers</h3>
         </div>

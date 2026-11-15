@@ -1,4 +1,4 @@
-// DDL, Schema Validator, and Per-Module Markdown Generators for Formora (Blueprint OS)
+// DDL, Schema Validator, and Per-Module Markdown Generators for Skemat (Blueprint OS)
 
 export const MILESTONE_NAMES = [
   "Project setup",

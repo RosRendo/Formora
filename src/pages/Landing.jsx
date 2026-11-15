@@ -468,7 +468,7 @@ const CAPABILITIES = [
   {
     idx: "03",
     title: "Downstream impact flags",
-    body: "When an approved schema or requirement mutates, Formora traces entity references and flags affected API endpoints and roadmap tasks as needing review.",
+    body: "When an approved schema or requirement mutates, Skemat traces entity references and flags affected API endpoints and roadmap tasks as needing review.",
     meta: "Versioned v1 -> v2 diff tracking",
   },
   {
@@ -494,7 +494,7 @@ const CAPABILITIES = [
 const FAQS = [
   {
     q: "Why not just ask ChatGPT or Claude for a `plan.md`?",
-    a: "A single 2,000-line markdown file has no referential integrity. The moment you rename a column or cut an MVP feature, the SQL section, API payloads, and task list contradict each other. Formora stores each layer as a typed, versioned artifact and regenerates clean `.sql`, `.prisma`, and separated `.md` files from one source of truth.",
+    a: "A single 2,000-line markdown file has no referential integrity. The moment you rename a column or cut an MVP feature, the SQL section, API payloads, and task list contradict each other. Skemat stores each layer as a typed, versioned artifact and regenerates clean `.sql`, `.prisma`, and separated `.md` files from one source of truth.",
   },
   {
     q: "What do I actually check into my Git repository?",
@@ -502,7 +502,7 @@ const FAQS = [
   },
   {
     q: "Do I need to bring my own AI API key?",
-    a: "No. Formora includes a built-in semantic architect that decomposes prompts into domain entities, endpoints, topology nodes, and milestones immediately. If you want custom LLM completions, you can optionally paste a Gemini or OpenAI key in the chat panel settings.",
+    a: "No. Skemat includes a built-in semantic architect that decomposes prompts into domain entities, endpoints, topology nodes, and milestones immediately. If you want custom LLM completions, you can optionally paste a Gemini or OpenAI key in the chat panel settings.",
   },
   {
     q: "What happens if I hit the 1-project limit on Starter?",
@@ -510,7 +510,7 @@ const FAQS = [
   },
   {
     q: "How are payments, VAT invoices, and cancellations handled?",
-    a: "Lemon Squeezy acts as Merchant of Record, handling global tax/VAT calculation and receipts automatically. You can cancel in one click from `/billing`; all exported SQL, Prisma, and Markdown files are plain text and yours permanently.",
+    a: "Blink handles secure checkout and receipts automatically. You can cancel in one click from `/billing`; all exported SQL, Prisma, and Markdown files are plain text and yours permanently.",
   },
 ];
 
@@ -668,12 +668,12 @@ export default function Landing() {
               <div className="grid h-6 w-6 place-items-center rounded-[5px] bg-white">
                 <div className="h-2.5 w-2.5 rounded-[2px] border-[1.5px] border-zinc-900" />
               </div>
-              <span className="text-[14px] font-semibold tracking-tight text-white">Formora</span>
+              <span className="text-[14px] font-semibold tracking-tight text-white">Skemat</span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-6 font-mono text-[12px] text-[#a1a1aa]">
               <a href="#workbench" className="hover:text-white transition-colors">Live demo</a>
-              <a href="#problem" className="hover:text-white transition-colors">Why Formora</a>
+              <a href="#problem" className="hover:text-white transition-colors">Why Skemat</a>
               <a href="#specs" className="hover:text-white transition-colors">Features</a>
               <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
               <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
@@ -723,7 +723,7 @@ export default function Landing() {
           <div className="border-b border-zinc-200 bg-white px-4 py-4 space-y-3 md:hidden">
             <div className="flex flex-col space-y-2 text-sm text-zinc-500">
               <a href="#workbench" onClick={() => setMobileOpen(false)} className="py-1.5">Live demo</a>
-              <a href="#problem" onClick={() => setMobileOpen(false)} className="py-1.5">Why Formora</a>
+              <a href="#problem" onClick={() => setMobileOpen(false)} className="py-1.5">Why Skemat</a>
               <a href="#specs" onClick={() => setMobileOpen(false)} className="py-1.5">Features</a>
               <a href="#pricing" onClick={() => setMobileOpen(false)} className="py-1.5">Pricing</a>
               <a href="#faq" onClick={() => setMobileOpen(false)} className="py-1.5">FAQ</a>
@@ -784,7 +784,7 @@ export default function Landing() {
               </h1>
 
               <p className="text-[15px] text-[#a1a1aa] max-w-lg leading-relaxed">
-                Describe your software in plain English. Formora decomposes your prompt live into a relational ERD,
+                Describe your software in plain English. Skemat decomposes your prompt live into a relational ERD,
                 REST contracts, a service topology graph, and nine separated{" "}
                 <code className="font-mono text-xs text-white bg-[#18181b] border border-[#27272a] px-1.5 py-0.5 rounded">.md</code> specs —
                 plus runnable PostgreSQL & Prisma schemas.
@@ -864,7 +864,7 @@ export default function Landing() {
                     <span className="h-2.5 w-2.5 rounded-full bg-[#3f3f46]" />
                   </div>
                   <span className="mx-auto font-mono text-[11px] text-[#71717a]">
-                    formora · new blueprint
+                    skemat · new blueprint
                   </span>
                   <button
                     type="button"
@@ -985,7 +985,7 @@ export default function Landing() {
                 <span className="h-2.5 w-2.5 rounded-full bg-[#3f3f46]" />
               </div>
               <span className="mx-auto font-mono text-[11px] text-[#71717a]">
-                Formora — FoodFlow blueprint
+                Skemat — FoodFlow blueprint
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#18181b] px-2.5 py-0.5 text-[10px] font-medium text-[#34d399]">
                 <Check className="h-3 w-3" /> all artifacts approved
@@ -1447,13 +1447,13 @@ CREATE INDEX
             <div className="mx-auto max-w-6xl px-4 sm:px-6 py-12 sm:py-16">
               <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="max-w-xl">
-                  <p className="text-sm font-medium text-zinc-500 mb-2">Why Formora</p>
+                  <p className="text-sm font-medium text-zinc-500 mb-2">Why Skemat</p>
                   <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">
                     Watch what happens when you rename one database column
                   </h2>
                   <p className="mt-3 text-[15px] text-zinc-500 leading-relaxed">
                     The left side is the way most AI plans live today: one markdown file nobody re-checks. The right
-                    side is Formora tracing the change through every linked artifact.
+                    side is Skemat tracing the change through every linked artifact.
                   </p>
                 </div>
 
@@ -1535,10 +1535,10 @@ CREATE INDEX
                   </div>
                 </div>
 
-                {/* Right: Formora cascade */}
+                {/* Right: Skemat cascade */}
                 <div className="rounded-2xl border border-zinc-200 bg-white p-6 sm:p-8 space-y-4">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs font-medium text-zinc-900">Formora linked artifact graph</span>
+                    <span className="text-xs font-medium text-zinc-900">Skemat linked artifact graph</span>
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
                         mutationStep === 0
@@ -1850,7 +1850,7 @@ CREATE INDEX
             <div className="grid h-5 w-5 place-items-center rounded bg-zinc-900">
               <div className="h-1.5 w-1.5 rounded-[2px] border-[1.5px] border-white" />
             </div>
-            <span className="font-medium text-zinc-900">Formora</span>
+            <span className="font-medium text-zinc-900">Skemat</span>
             <span className="text-xs">· software blueprint planner</span>
           </div>
           <div className="flex items-center gap-5">

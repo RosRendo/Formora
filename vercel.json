@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://formora.dashboardkiller.online/api/$1"
+      "destination": "https://skemat.online/api/$1"
     },
     {
       "source": "/(.*)",

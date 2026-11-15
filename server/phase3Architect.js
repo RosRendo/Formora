@@ -1,4 +1,4 @@
-// Phase 3 Blueprint Module Architect & Normalizer for Formora
+// Phase 3 Blueprint Module Architect & Normalizer for Skemat
 // Powers: Deployment Center (deployment) — Readiness gates, Environment Variable Catalog, Runbook, Rollback & CI/CD
 
 import crypto from "crypto";

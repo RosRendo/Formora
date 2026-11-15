@@ -1,7 +1,9 @@
-# Build Log: Formora (Architectural Blueprint OS)
+# Build Log: Skemat (Architectural Blueprint OS)
+Production Domain: `https://skemat.online`
 
 Updated: 2026-10-30
-Repository: `d:\FOR RENDO (ONLY )\Personal Project\Formora`
+Repository: `d:\FOR RENDO (ONLY )\Personal Project\Sass\Formora (BluePrint-Sass)`
+Production Domain: `https://skemat.online`
 
 ## Screens & Modules Implementation Log
 

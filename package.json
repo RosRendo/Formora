@@ -1,9 +1,12 @@
 {
-  "name": "formora",
+  "name": "skemat",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "start": "node server/server.js",
     "dev": "concurrently -k -p \"[{name}]\" -n \"API,WEB\" -c \"cyan,magenta\" \"npm run server\" \"npm run client\"",

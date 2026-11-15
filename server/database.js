@@ -8,7 +8,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
-const SQLITE_PATH = process.env.DATABASE_PATH || path.join(DATA_DIR, "formora.sqlite");
+const defaultDbName = fs.existsSync(path.join(DATA_DIR, "skemat.sqlite"))
+  ? "skemat.sqlite"
+  : fs.existsSync(path.join(DATA_DIR, "formora.sqlite"))
+  ? "formora.sqlite"
+  : "skemat.sqlite";
+const SQLITE_PATH = process.env.DATABASE_PATH || path.join(DATA_DIR, defaultDbName);
 const LEGACY_JSON_PATH = path.join(__dirname, "db.json");
 
 if (!fs.existsSync(DATA_DIR)) {

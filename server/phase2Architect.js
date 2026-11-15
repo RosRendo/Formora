@@ -1,4 +1,4 @@
-// Phase 2 Blueprint Modules Architect & Normalizer for Formora
+// Phase 2 Blueprint Modules Architect & Normalizer for Skemat
 // Powers: User Flows (flows), UI/UX Blueprint (ui), Security Plan (security), and Testing Center (testing)
 
 import crypto from "crypto";

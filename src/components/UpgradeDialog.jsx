@@ -26,7 +26,7 @@ export default function UpgradeDialog({ open, onOpenChange, reason }) {
           </AlertDialogTitle>
           <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed">
             {reason ||
-              "Starter includes 1 active project. Upgrade to Formora Pro for unlimited blueprints, PostgreSQL DDL & Prisma schema exports, and 14-file specification bundles."}
+              "Starter includes 1 active project. Upgrade to Skemat Pro for unlimited blueprints, PostgreSQL DDL & Prisma schema exports, and 14-file specification bundles."}
           </AlertDialogDescription>
         </AlertDialogHeader>
 

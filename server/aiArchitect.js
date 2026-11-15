@@ -1,4 +1,4 @@
-// AI Architect & Multi-Module Router for Formora (Blueprint OS)
+// AI Architect & Multi-Module Router for Skemat (Blueprint OS)
 // Decomposes natural-language product ideas and incremental requests into separate,
 // cross-linked structured panels: Brief, Requirements, Features, Architecture, Database, API, Roadmap, and Separate .md Docs.
 

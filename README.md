@@ -1,4 +1,4 @@
-# 📋 Formora — Enterprise Specification Engine & Blueprint Studio
+# 📋 Skemat — Enterprise Specification Engine & Blueprint Studio
 
 <div align="center">
 
@@ -12,7 +12,7 @@
 
 **Interactive software blueprint studio and enterprise specification compiler converting product requirements into production architecture schemas.**
 
-[System Architecture](#-system-architecture) • [Database ERD](#-database-erd-13-table-relational-schema) • [Synthesis Flow](#-specification-synthesis-workflow) • [Quick Start](#-quick-start)
+[Production Domain](https://skemat.online) • [System Architecture](#-system-architecture) • [Database ERD](#-database-erd-13-table-relational-schema) • [Synthesis Flow](#-specification-synthesis-workflow) • [Quick Start](#-quick-start)
 
 </div>
 
@@ -20,7 +20,7 @@
 
 ## ⚡ Overview
 
-**Formora** streamlines complex product planning. It allows engineering leaders to author, validate, and compile complex software specifications across 12 discrete architectural modules, maintaining sub-millisecond querying speed via an embedded **SQLite WAL** persistence layer.
+**Skemat** streamlines complex product planning. It allows engineering leaders to author, validate, and compile complex software specifications across 12 discrete architectural modules, maintaining sub-millisecond querying speed via an embedded **SQLite WAL** persistence layer.
 
 ---
 
@@ -132,7 +132,7 @@ erDiagram
 sequenceDiagram
     autonumber
     actor Architect as 📐 System Architect
-    participant Studio as 🎨 Formora Studio
+    participant Studio as 🎨 Skemat Studio
     participant API as ⚡ NestJS API
     participant Compiler as ⚙️ AST Compiler
     participant SQLite as 💾 SQLite WAL
@@ -170,7 +170,7 @@ pnpm prisma db push
 pnpm run dev
 ```
 
-Visit `http://localhost:3000` to launch Formora.
+Visit `http://localhost:3000` to launch Skemat (production domain: `https://skemat.online`).
 
 ---
 

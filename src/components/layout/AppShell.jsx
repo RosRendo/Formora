@@ -18,7 +18,7 @@ function Logo() {
       <div className="grid h-6 w-6 place-items-center rounded-[5px] bg-foreground">
         <div className="h-2.5 w-2.5 rounded-[2px] border-[1.5px] border-background" />
       </div>
-      <span className="text-[14px] font-semibold tracking-tight">Formora</span>
+      <span className="text-[14px] font-semibold tracking-tight">Skemat</span>
     </Link>
   );
 }

@@ -1,16 +1,16 @@
-# Formora SaaS Production Deployment Guide
+# Skemat SaaS Production Deployment Guide
 
-This guide covers production deployment for **Formora (Blueprint OS)** as a high-performance, single-container full-stack SaaS application.
+This guide covers production deployment for **Skemat (Blueprint OS)** (`skemat.online`) as a high-performance, single-container full-stack SaaS application.
 
 ---
 
 ## 1. System Architecture
 
-Formora runs as a unified, high-efficiency Node.js application:
+Skemat runs as a unified, high-efficiency Node.js application:
 * **Frontend:** React 19 + Tailwind CSS + Lucide icons pre-compiled with Vite into static assets (`dist/`).
 * **Backend:** Node.js 22+ Express API serving both JSON endpoints under `/api/*` and the static SPA bundle for all other routes.
-* **Database:** Embedded relational SQLite in **WAL (Write-Ahead-Log)** mode via Node's native `node:sqlite` (`server/data/formora.sqlite`). Zero external database servers required.
-* **Billing:** Lemon Squeezy Merchant-of-Record with dual-layer redundancy (HMAC-SHA256 Webhook push + Direct API fallback pull).
+* **Database:** Embedded relational SQLite in **WAL (Write-Ahead-Log)** mode via Node's native `node:sqlite` (`server/data/skemat.sqlite`). Zero external database servers required.
+* **Billing:** Blink Digital Checkout (`sellonblink.com` / `blink.store`) with HMAC webhook signature verification and direct parameter passing.
 * **AI Engine:** Universal Server AI router supporting OpenRouter, Gemini 2.5, DeepSeek V3, Groq, Anthropic, or OpenAI.
 
 ---
@@ -26,20 +26,19 @@ PORT=3001
 
 # Security (CRITICAL: Must be >= 32 random characters in production)
 JWT_SECRET=generate-a-strong-random-64-character-secret-key-here
-CORS_ORIGIN=https://app.formora.dev
-FRONTEND_URL=https://app.formora.dev
+CORS_ORIGIN=https://skemat.online,https://app.skemat.online
+FRONTEND_URL=https://skemat.online
 
 # Persistent Database Path
-DATABASE_PATH=/app/server/data/formora.sqlite
+DATABASE_PATH=/app/server/data/skemat.sqlite
 
-# Lemon Squeezy Merchant-of-Record Billing
-LEMONSQUEEZY_API_KEY=your_live_api_key
-LEMONSQUEEZY_STORE_ID=your_store_id
-LEMONSQUEEZY_WEBHOOK_SECRET=your_custom_webhook_secret
-LEMONSQUEEZY_PRO_MONTHLY_VARIANT_ID=2350645
-LEMONSQUEEZY_PRO_YEARLY_VARIANT_ID=2350664
-LEMONSQUEEZY_TEAM_MONTHLY_VARIANT_ID=2350686
-LEMONSQUEEZY_TEAM_YEARLY_VARIANT_ID=2350677
+# Blink Digital Checkout (sellonblink.com / blink.store)
+BILLING_PROVIDER=blink
+BLINK_PRO_MONTHLY_URL=https://blink.store/p/your-pro-monthly-link
+BLINK_PRO_YEARLY_URL=https://blink.store/p/your-pro-annual-link
+BLINK_TEAM_MONTHLY_URL=https://blink.store/p/your-team-monthly-link
+BLINK_TEAM_YEARLY_URL=https://blink.store/p/your-team-annual-link
+BLINK_WEBHOOK_SECRET=your_custom_webhook_secret
 
 # Server-Managed AI Architect (Universal SaaS Default)
 AI_PROVIDER=openrouter
@@ -53,7 +52,7 @@ ALLOW_LOCAL_LLM_ENDPOINTS=false
 
 ## 3. Deployment Option A: Docker & Docker Compose (Recommended)
 
-Formora includes a production-ready multi-stage `Dockerfile` and `docker-compose.yml`.
+Skemat includes a production-ready multi-stage `Dockerfile` and `docker-compose.yml`.
 
 ### Quick Start:
 ```bash
@@ -61,14 +60,14 @@ Formora includes a production-ready multi-stage `Dockerfile` and `docker-compose
 docker compose up -d --build
 
 # 2. Check logs
-docker compose logs -f formora
+docker compose logs -f skemat
 
 # 3. Verify healthcheck
 curl http://localhost:3001/api/health
 ```
 
 ### Volume Persistence:
-SQLite data is stored in the Docker volume `formora_data` mounted at `/app/server/data`. Your database will persist across container rebuilds and image updates.
+SQLite data is stored in the Docker volume `skemat_data` mounted at `/app/server/data`. Your database will persist across container rebuilds and image updates.
 
 ---
 
@@ -86,8 +85,8 @@ SQLite data is stored in the Docker volume `formora_data` mounted at `/app/serve
 ### Build & Run with PM2:
 ```bash
 # 1. Clone repository
-git clone https://github.com/your-username/formora.git /var/www/formora
-cd /var/www/formora
+git clone https://github.com/your-username/skemat.git /var/www/skemat
+cd /var/www/skemat
 
 # 2. Install dependencies & build frontend bundle
 npm ci
@@ -103,10 +102,10 @@ pm2 save
 pm2 startup
 ```
 
-### Nginx Configuration (`/etc/nginx/sites-available/formora`):
+### Nginx Configuration (`/etc/nginx/sites-available/skemat`):
 ```nginx
 server {
-    server_name app.formora.dev;
+    server_name skemat.online app.skemat.online;
 
     client_max_body_size 25M;
 
@@ -126,16 +125,16 @@ server {
 
 Enable site & obtain free SSL certificate:
 ```bash
-sudo ln -s /etc/nginx/sites-available/formora /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/skemat /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
-sudo certbot --nginx -d app.formora.dev
+sudo certbot --nginx -d skemat.online -d app.skemat.online
 ```
 
 ---
 
 ## 5. Deployment Option C: Railway / Render / Fly.io (PaaS)
 
-Formora is 100% compatible with modern PaaS platforms:
+Skemat is 100% compatible with modern PaaS platforms:
 1. Connect your GitHub repository to Railway or Render.
 2. Set **Build Command:** `npm run build`
 3. Set **Start Command:** `npm start` (runs `node server/server.js`)
@@ -144,14 +143,14 @@ Formora is 100% compatible with modern PaaS platforms:
 
 ---
 
-## 6. Lemon Squeezy Live Launch Checklist
+## 6. Blink Launch Checklist (sellonblink.com)
 
-1. **Switch to Live Mode:** In Lemon Squeezy dashboard, toggle off **Test Mode**.
+1. **Create Products on Blink:** In your Blink dashboard, create your products for Pro Builder and Team Studio.
 2. **Update Webhook URL:**
-   * Go to **Settings &rarr; Webhooks**.
-   * Set Callback URL: `https://app.formora.dev/api/billing/webhook/lemonsqueezy`
-   * Select events: `order_created`, `subscription_created`, `subscription_updated`, `subscription_cancelled`.
-3. **Verify Webhook Secret:** Ensure `LEMONSQUEEZY_WEBHOOK_SECRET` matches between your dashboard and server `.env`.
+   * Go to **Settings &rarr; Webhooks** (or Integrations).
+   * Set Callback URL: `https://skemat.online/api/billing/webhook/blink`
+   * Select event: `payment.succeeded` or `order.created`.
+3. **Copy Product Links:** Paste the links into your production `.env` under `BLINK_PRO_*` and `BLINK_TEAM_*`.
 
 ---
 
@@ -160,15 +159,14 @@ Formora is 100% compatible with modern PaaS platforms:
 Because SQLite is running in WAL mode, you can safely create online hot backups without stopping the server using a daily cron job:
 
 ```bash
-# /etc/cron.daily/formora-backup
+# /etc/cron.daily/skemat-backup
 #!/bin/bash
-BACKUP_DIR="/var/backups/formora"
+BACKUP_DIR="/var/backups/skemat"
 mkdir -p "$BACKUP_DIR"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 # Safe SQLite vacuum backup
-sqlite3 /var/www/formora/server/data/formora.sqlite ".backup '$BACKUP_DIR/formora_$TIMESTAMP.sqlite'"
+sqlite3 /var/www/skemat/server/data/skemat.sqlite ".backup '$BACKUP_DIR/skemat_$TIMESTAMP.sqlite'"
 # Keep last 14 days of backups
 find "$BACKUP_DIR" -type f -name "*.sqlite" -mtime +14 -delete
 ```
-Make executable: `sudo chmod +x /etc/cron.daily/formora-backup`
-
+Make executable: `sudo chmod +x /etc/cron.daily/skemat-backup`

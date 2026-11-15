@@ -41,7 +41,7 @@ function BlueprintVisual() {
       />
 
       <div className="relative flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.18em] text-zinc-400">
-        <span>Formora // Blueprint OS</span>
+        <span>Skemat // Blueprint OS</span>
         <span>12 Modules &middot; SQL + .MD</span>
       </div>
 
@@ -172,7 +172,7 @@ export default function Login() {
             data-testid="back-to-landing-link"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Back to Formora</span>
+            <span>Back to Skemat</span>
           </Link>
         </div>
 
@@ -180,7 +180,7 @@ export default function Login() {
           <div className="grid h-6 w-6 place-items-center rounded-[5px] bg-foreground">
             <div className="h-2.5 w-2.5 rounded-[2px] border-[1.5px] border-background" />
           </div>
-          <span className="text-[14px] font-semibold tracking-tight">Formora</span>
+          <span className="text-[14px] font-semibold tracking-tight">Skemat</span>
           <span className="rounded border hairline bg-muted/50 px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
             Blueprint OS
           </span>

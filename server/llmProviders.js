@@ -1,4 +1,4 @@
-// Unified Multi-Provider, Multi-Model & Custom Endpoint AI Engine for Formora
+// Unified Multi-Provider, Multi-Model & Custom Endpoint AI Engine for Skemat
 // Supports:
 //   1. Antigravity-style Curated Model Selector (Gemini 2.5 Pro/Flash, Claude Sonnet 4 / 3.7, GPT-4.1 / 4o-mini, DeepSeek V3 / R1, Llama 3.3 70B)
 //   2. Server-Managed SaaS AI via .env (direct provider keys OR universal OpenRouter / Custom LiteLLM Gateway)
@@ -599,7 +599,7 @@ export async function invokeStructuredLlm({
   const headers = {
     "Content-Type": "application/json",
     ...(provider === "openrouter"
-      ? { "HTTP-Referer": process.env.FRONTEND_URL || "https://formora.dev", "X-Title": "Formora Blueprint OS" }
+      ? { "HTTP-Referer": process.env.FRONTEND_URL || "https://skemat.online", "X-Title": "Skemat Blueprint OS" }
       : {}),
     ...extraHeaders,
   };
@@ -670,7 +670,7 @@ export function buildArchitectSystemPrompt(targetList, mode, existingSummary) {
     .filter(Boolean)
     .map((line) => `  ${line}`);
 
-  return `You are the Formora AI Software Architect.
+  return `You are the Skemat AI Software Architect.
 Decompose the user's product idea or change request into SEPARATE structured JSON modules so each module renders in its own visual panel.
 Mode: ${mode}. Requested target panels: ${targetList.join(", ")}.
 Current project state: ${JSON.stringify(existingSummary)}.

@@ -1,4 +1,4 @@
--- Formora / Blueprint OS Production Relational Schema (PostgreSQL / SQLite Equivalent)
+-- Skemat / Blueprint OS Production Relational Schema (PostgreSQL / SQLite Equivalent)
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 

@@ -1,4 +1,4 @@
-# Architecture: Formora (Rebuild of Blueprint OS)
+# Architecture: Skemat (Rebuild of Blueprint OS)
 
 ## Stack
 

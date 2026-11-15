@@ -21,10 +21,8 @@ import { deriveDeploymentFromProject } from "./phase3Architect.js";
 import { getPublicAiCapabilities, testLlmConnection } from "./llmProviders.js";
 import {
   PLANS,
-  verifyLemonSqueezySignature,
   createCheckoutSession,
-  handleLemonSqueezyWebhookEvent,
-  syncUserSubscriptionFromLemonSqueezy,
+  handleBlinkWebhookEvent,
 } from "./billing.js";
 import {
   initializeSqliteDatabase,
@@ -58,7 +56,7 @@ if (IS_PROD && (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32)) 
   console.error("FATAL: Production requires a strong JWT_SECRET environment variable (>= 32 chars).");
   process.exit(1);
 }
-const JWT_SECRET = process.env.JWT_SECRET || "formora-dev-only-secret-key-2026-local";
+const JWT_SECRET = process.env.JWT_SECRET || "skemat-dev-only-secret-key-2026-local";
 
 const ACCESS_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
 const REFRESH_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -1647,23 +1645,11 @@ app.post("/api/projects/:pid/ai/jobs/:id/discard", (req, res) => {
 app.get("/api/billing/plans", (req, res) => {
   res.json({
     plans: PLANS,
-    active_provider: process.env.LEMONSQUEEZY_API_KEY ? "lemonsqueezy" : "simulation",
+    active_provider: "blink",
   });
 });
 
-app.get("/api/billing/subscription", authRequired, async (req, res) => {
-  // If user is currently free or explicit sync requested, auto-sync from Lemon Squeezy API
-  if (
-    (!req.user.plan || req.user.plan === "free" || req.query.sync === "true") &&
-    process.env.LEMONSQUEEZY_API_KEY
-  ) {
-    try {
-      await syncUserSubscriptionFromLemonSqueezy(req.user, DB, saveDb);
-    } catch (e) {
-      console.warn("Auto-sync subscription skipped:", e.message);
-    }
-  }
-
+app.get("/api/billing/subscription", authRequired, (req, res) => {
   const userPlan = req.user.plan || "free";
   const planConfig = PLANS[userPlan] || PLANS.free;
   const activeProjects = DB.projects.filter(
@@ -1684,18 +1670,13 @@ app.get("/api/billing/subscription", authRequired, async (req, res) => {
   });
 });
 
-app.post("/api/billing/sync", authRequired, async (req, res) => {
-  try {
-    const sub = await syncUserSubscriptionFromLemonSqueezy(req.user, DB, saveDb);
-    res.json({
-      success: true,
-      plan: req.user.plan || "free",
-      subscription: req.user.subscription || null,
-      synced: !!sub,
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message || "Failed to sync subscription" });
-  }
+app.post("/api/billing/sync", authRequired, (req, res) => {
+  res.json({
+    success: true,
+    plan: req.user.plan || "free",
+    subscription: req.user.subscription || null,
+    synced: true,
+  });
 });
 
 app.post("/api/billing/checkout", authRequired, checkoutLimiter, async (req, res) => {
@@ -1713,38 +1694,35 @@ app.post("/api/billing/checkout", authRequired, checkoutLimiter, async (req, res
   }
 });
 
-app.post("/api/billing/webhook/lemonsqueezy", async (req, res) => {
-  const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
-  const signature = req.headers["x-signature"];
+app.post("/api/billing/webhook/blink", async (req, res) => {
+  const secret = process.env.BLINK_WEBHOOK_SECRET;
+  const signature = req.headers["x-blink-signature"] || req.headers["x-signature"];
 
-  if (IS_PROD && !secret) {
-    console.error("[Webhook] LEMONSQUEEZY_WEBHOOK_SECRET is missing in production.");
-    return res.status(503).json({ error: "Webhook verification secret not configured" });
-  }
-
-  if (secret) {
-    const raw = req.rawBody || JSON.stringify(req.body);
-    const isValid = verifyLemonSqueezySignature(raw, signature, secret);
-    if (!isValid) {
-      console.warn("[Webhook] Invalid Lemon Squeezy webhook signature rejected");
-      return res.status(401).json({ error: "Invalid webhook signature" });
+  if (IS_PROD && secret && signature) {
+    try {
+      const hmac = crypto.createHmac("sha256", secret);
+      const digest = hmac.update(req.rawBody || JSON.stringify(req.body)).digest("hex");
+      if (digest !== signature) {
+        console.warn("[Blink Webhook] Invalid signature rejected");
+        return res.status(401).json({ error: "Invalid signature" });
+      }
+    } catch (e) {
+      console.error("[Blink Webhook] Signature verification failed:", e);
     }
   }
 
   try {
-    const result = handleLemonSqueezyWebhookEvent(DB, req.body, saveDb);
+    const result = handleBlinkWebhookEvent(DB, req.body, saveDb);
     res.json({ received: true, ...result });
   } catch (err) {
-    console.error("Error processing Lemon Squeezy webhook:", err);
+    console.error("Error processing Blink webhook:", err);
     res.status(500).json({ error: "Internal webhook processing error" });
   }
 });
 
 app.get("/api/billing/portal", authRequired, (req, res) => {
-  if (req.user.subscription?.customer_id && process.env.LEMONSQUEEZY_API_KEY) {
-    return res.json({ portal_url: "https://app.lemonsqueezy.com/my-orders" });
-  }
-  res.json({ portal_url: "/billing", message: "Manage subscriptions on Formora billing dashboard" });
+  const portalUrl = req.user.subscription?.customer_portal_url || "https://sellonblink.com";
+  res.json({ portal_url: portalUrl, message: "Manage subscriptions on Blink dashboard" });
 });
 
 app.get("/api/health", (req, res) => {
@@ -1770,5 +1748,5 @@ if (fs.existsSync(DIST_DIR)) {
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Formora API Server listening on http://localhost:${PORT} [${IS_PROD ? "production" : "development"}]`);
+  console.log(`Skemat API Server listening on http://localhost:${PORT} [${IS_PROD ? "production" : "development"}]`);
 });

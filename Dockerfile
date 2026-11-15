@@ -1,5 +1,5 @@
 # ==============================================================================
-# Formora SaaS Production Dockerfile
+# Skemat SaaS Production Dockerfile
 # Multi-stage build for single-container deployment (SPA + Express API)
 # Requires Node >= 22 for native node:sqlite and loadEnvFile support
 # ==============================================================================
@@ -39,9 +39,6 @@ RUN mkdir -p /app/server/data && chown -R node:node /app
 USER node
 
 EXPOSE 3001
-
-# Persistent SQLite database volume mount
-VOLUME ["/app/server/data"]
 
 # Healthcheck probe using built-in Node
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
