@@ -22,7 +22,9 @@ import { getPublicAiCapabilities, testLlmConnection } from "./llmProviders.js";
 import {
   PLANS,
   createCheckoutSession,
-  handleBlinkWebhookEvent,
+  verifyPaddleWebhookSignature,
+  handlePaddleWebhookEvent,
+  getCustomerPortalUrl,
 } from "./billing.js";
 import {
   initializeSqliteDatabase,
@@ -1761,7 +1763,7 @@ app.post("/api/projects/:pid/ai/jobs/:id/discard", (req, res) => {
 app.get("/api/billing/plans", (req, res) => {
   res.json({
     plans: PLANS,
-    active_provider: "blink",
+    active_provider: "paddle",
   });
 });
 
@@ -1803,6 +1805,7 @@ app.post("/api/billing/checkout", authRequired, checkoutLimiter, async (req, res
       planId: plan || "pro",
       interval: interval || "monthly",
       redirectUrl: redirect_url,
+      clientIp: req.ip,
     });
     res.json(session);
   } catch (err) {
@@ -1810,35 +1813,39 @@ app.post("/api/billing/checkout", authRequired, checkoutLimiter, async (req, res
   }
 });
 
-app.post("/api/billing/webhook/blink", async (req, res) => {
-  const secret = process.env.BLINK_WEBHOOK_SECRET;
-  const signature = req.headers["x-blink-signature"] || req.headers["x-signature"];
+app.post("/api/billing/webhook/paddle", async (req, res) => {
+  const secret = process.env.PADDLE_WEBHOOK_SECRET_KEY;
+  const signature = req.headers["paddle-signature"] || req.headers["Paddle-Signature"];
 
-  if (IS_PROD && secret && signature) {
-    try {
-      const hmac = crypto.createHmac("sha256", secret);
-      const digest = hmac.update(req.rawBody || JSON.stringify(req.body)).digest("hex");
-      if (digest !== signature) {
-        console.warn("[Blink Webhook] Invalid signature rejected");
-        return res.status(401).json({ error: "Invalid signature" });
+  if (secret) {
+    const verification = verifyPaddleWebhookSignature(req.rawBody, signature, secret);
+    if (!verification.valid) {
+      console.warn("[Paddle Webhook] Cryptographic signature check rejected:", verification.reason);
+      if (IS_PROD) {
+        return res.status(401).json({ error: "Invalid signature", detail: verification.reason });
       }
-    } catch (e) {
-      console.error("[Blink Webhook] Signature verification failed:", e);
     }
+  } else if (IS_PROD) {
+    console.error("[Paddle Webhook] FATAL: PADDLE_WEBHOOK_SECRET_KEY not set in production");
+    return res.status(500).json({ error: "Webhook secret key not configured" });
   }
 
   try {
-    const result = handleBlinkWebhookEvent(DB, req.body, saveDb);
+    const result = handlePaddleWebhookEvent(DB, req.body, saveDb);
     res.json({ received: true, ...result });
   } catch (err) {
-    console.error("Error processing Blink webhook:", err);
+    console.error("Error processing Paddle webhook:", err);
     res.status(500).json({ error: "Internal webhook processing error" });
   }
 });
 
-app.get("/api/billing/portal", authRequired, (req, res) => {
-  const portalUrl = req.user.subscription?.customer_portal_url || "https://sellonblink.com";
-  res.json({ portal_url: portalUrl, message: "Manage subscriptions on Blink dashboard" });
+app.get("/api/billing/portal", authRequired, async (req, res) => {
+  try {
+    const portalUrl = await getCustomerPortalUrl(req.user.subscription);
+    res.json({ portal_url: portalUrl, message: "Manage subscriptions on Paddle customer portal" });
+  } catch (err) {
+    res.json({ portal_url: "https://paddle.com", message: "Manage subscriptions on Paddle dashboard" });
+  }
 });
 
 app.get("/api/health", (req, res) => {

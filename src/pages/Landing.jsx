@@ -510,7 +510,7 @@ const FAQS = [
   },
   {
     q: "How are payments, VAT invoices, and cancellations handled?",
-    a: "Blink handles secure checkout and receipts automatically. You can cancel in one click from `/billing`; all exported SQL, Prisma, and Markdown files are plain text and yours permanently.",
+    a: "Paddle handles secure checkout, regional tax compliance, and automated receipts worldwide. You can cancel in one click from `/billing`; all exported SQL, Prisma, and Markdown files are plain text and yours permanently.",
   },
 ];
 

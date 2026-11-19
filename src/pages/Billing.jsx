@@ -21,7 +21,7 @@ export default function Billing() {
   const [loading, setLoading] = useState(true);
   const [subData, setSubData] = useState(null);
   const [plans, setPlans] = useState({});
-  const [provider, setProvider] = useState("blink");
+  const [provider, setProvider] = useState("paddle");
   const [interval, setInterval] = useState("monthly");
   const [actionBusy, setActionBusy] = useState(null);
 
@@ -81,10 +81,10 @@ export default function Billing() {
       if (data?.portal_url && data.portal_url.startsWith("http")) {
         window.open(data.portal_url, "_blank", "noopener,noreferrer");
       } else {
-        window.open("https://sellonblink.com", "_blank", "noopener,noreferrer");
+        window.open("https://paddle.com", "_blank", "noopener,noreferrer");
       }
     } catch {
-      window.open("https://sellonblink.com", "_blank", "noopener,noreferrer");
+      window.open("https://paddle.com", "_blank", "noopener,noreferrer");
     }
   };
 
@@ -239,7 +239,7 @@ export default function Billing() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-2">
         <div>
           <div className="font-mono text-[10.5px] uppercase tracking-wider text-muted-foreground">
-            Plans // Blink Digital Checkout
+            Plans // Paddle Merchant of Record
           </div>
           <h3 className="mt-1 text-lg font-semibold tracking-tight">Workspace Tiers</h3>
         </div>
@@ -456,7 +456,7 @@ export default function Billing() {
       <div className="rounded-lg border hairline bg-card p-6 space-y-3">
         <div className="flex items-center justify-between">
           <h4 className="text-sm font-semibold tracking-tight">Invoice &amp; Transaction Ledger</h4>
-          <span className="font-mono text-[10.5px] text-muted-foreground">LEMON SQUEEZY MOR</span>
+          <span className="font-mono text-[10.5px] text-muted-foreground">PADDLE BILLING MOR</span>
         </div>
 
         {subData?.transactions?.length > 0 ? (
@@ -483,7 +483,7 @@ export default function Billing() {
           </div>
         ) : (
           <p className="text-xs text-muted-foreground py-1">
-            No completed transactions yet. Invoices processed via Lemon Squeezy appear here automatically.
+            No completed transactions yet. Invoices and receipts processed via Paddle Billing appear here automatically.
           </p>
         )}
       </div>

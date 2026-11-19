@@ -10,7 +10,7 @@ Skemat runs as a unified, high-efficiency Node.js application:
 * **Frontend:** React 19 + Tailwind CSS + Lucide icons pre-compiled with Vite into static assets (`dist/`).
 * **Backend:** Node.js 22+ Express API serving both JSON endpoints under `/api/*` and the static SPA bundle for all other routes.
 * **Database:** Embedded relational SQLite in **WAL (Write-Ahead-Log)** mode via Node's native `node:sqlite` (`server/data/skemat.sqlite`). Zero external database servers required.
-* **Billing:** Blink Digital Checkout (`sellonblink.com` / `blink.store`) with HMAC webhook signature verification and direct parameter passing.
+* **Billing:** Paddle Billing v2 (`paddle.com`) Merchant of Record with HMAC-SHA256 signature verification, automated subscription lifecycle, and customer portal.
 * **AI Engine:** Universal Server AI router supporting OpenRouter, Gemini 2.5, DeepSeek V3, Groq, Anthropic, or OpenAI.
 
 ---
@@ -32,13 +32,16 @@ FRONTEND_URL=https://skemat.online
 # Persistent Database Path
 DATABASE_PATH=/app/server/data/skemat.sqlite
 
-# Blink Digital Checkout (sellonblink.com / blink.store)
-BILLING_PROVIDER=blink
-BLINK_PRO_MONTHLY_URL=https://blink.store/p/your-pro-monthly-link
-BLINK_PRO_YEARLY_URL=https://blink.store/p/your-pro-annual-link
-BLINK_TEAM_MONTHLY_URL=https://blink.store/p/your-team-monthly-link
-BLINK_TEAM_YEARLY_URL=https://blink.store/p/your-team-annual-link
-BLINK_WEBHOOK_SECRET=your_custom_webhook_secret
+# Paddle Billing v2 (paddle.com Merchant of Record)
+BILLING_PROVIDER=paddle
+PADDLE_ENV=production
+PADDLE_API_KEY=pdl_api_...
+PADDLE_CLIENT_TOKEN=live_...
+PADDLE_WEBHOOK_SECRET_KEY=pdl_ntfset_...
+PADDLE_PRO_MONTHLY_PRICE_ID=pri_...
+PADDLE_PRO_YEARLY_PRICE_ID=pri_...
+PADDLE_TEAM_MONTHLY_PRICE_ID=pri_...
+PADDLE_TEAM_YEARLY_PRICE_ID=pri_...
 
 # Server-Managed AI Architect (Universal SaaS Default)
 AI_PROVIDER=openrouter
@@ -143,14 +146,41 @@ Skemat is 100% compatible with modern PaaS platforms:
 
 ---
 
-## 6. Blink Launch Checklist (sellonblink.com)
+## 6. Paddle Billing Setup Checklist (paddle.com)
 
-1. **Create Products on Blink:** In your Blink dashboard, create your products for Pro Builder and Team Studio.
-2. **Update Webhook URL:**
-   * Go to **Settings &rarr; Webhooks** (or Integrations).
-   * Set Callback URL: `https://skemat.online/api/billing/webhook/blink`
-   * Select event: `payment.succeeded` or `order.created`.
-3. **Copy Product Links:** Paste the links into your production `.env` under `BLINK_PRO_*` and `BLINK_TEAM_*`.
+1. **Create Products & Prices on Paddle:**
+   * Go to **Catalog &rarr; Products** in your Paddle Dashboard (Sandbox or Production).
+   * Create two products:
+     - **Pro Builder**: Add a monthly price ($19/mo) and an annual price ($190/yr). Note the Price IDs (`pri_...`).
+     - **Team Studio**: Add a monthly price ($49/mo) and an annual price ($490/yr). Note the Price IDs (`pri_...`).
+2. **Configure Webhook Notifications:**
+   * Go to **Developer Tools &rarr; Notifications**.
+   * Click **New destination** &rarr; Webhook.
+   * Set **URL:** `https://formora-production-6e4631df.up.railway.app/api/billing/webhook/paddle` (or `https://skemat.online/api/billing/webhook/paddle`).
+   * Select events:
+     - `subscription.activated`
+     - `subscription.updated`
+     - `subscription.canceled`
+     - `subscription.past_due`
+     - `subscription.resumed`
+     - `transaction.completed`
+     - `transaction.paid`
+   * Copy the **Secret Key** (`pdl_ntfset_...`) into `PADDLE_WEBHOOK_SECRET_KEY`.
+3. **Generate API Keys & Client Token:**
+   * Go to **Developer Tools &rarr; Authentication**.
+   * Generate an **API key** (`pdl_api_...`) with permissions for `transactions` and `subscriptions`.
+   * Copy your **Client token** (`live_...` or `test_...`).
+4. **Update Environment Variables:**
+   * In Railway (or your server `.env`):
+     - `BILLING_PROVIDER=paddle`
+     - `PADDLE_ENV=production` (or `sandbox` for testing)
+     - `PADDLE_API_KEY=pdl_api_...`
+     - `PADDLE_CLIENT_TOKEN=live_...`
+     - `PADDLE_WEBHOOK_SECRET_KEY=pdl_ntfset_...`
+     - `PADDLE_PRO_MONTHLY_PRICE_ID=pri_...`
+     - `PADDLE_PRO_YEARLY_PRICE_ID=pri_...`
+     - `PADDLE_TEAM_MONTHLY_PRICE_ID=pri_...`
+     - `PADDLE_TEAM_YEARLY_PRICE_ID=pri_...`
 
 ---
 
