@@ -1765,8 +1765,8 @@ CREATE INDEX
             </div>
 
             <div className="mt-6 rounded-xl border border-zinc-200 bg-white px-5 py-3.5 text-xs text-zinc-500 flex flex-wrap items-center justify-between gap-2">
-              <span>Checkout &amp; global VAT handled by Lemon Squeezy (Merchant of Record)</span>
-              <span>One-click cancellation · keep exported files permanently</span>
+              <span>Checkout &amp; global VAT handled by Paddle (Merchant of Record)</span>
+              <span>14-day refund guarantee · one-click cancellation</span>
             </div>
           </div>
         </RevealSection>
@@ -1853,9 +1853,12 @@ CREATE INDEX
             <span className="font-medium text-zinc-900">Skemat</span>
             <span className="text-xs">· software blueprint planner</span>
           </div>
-          <div className="flex items-center gap-5">
+          <div className="flex flex-wrap items-center gap-5">
             <a href="#workbench" className="hover:text-zinc-900 transition-colors">Live demo</a>
             <a href="#pricing" className="hover:text-zinc-900 transition-colors">Pricing</a>
+            <Link to="/terms" className="hover:text-zinc-900 transition-colors">Terms</Link>
+            <Link to="/privacy" className="hover:text-zinc-900 transition-colors">Privacy</Link>
+            <Link to="/refund" className="hover:text-zinc-900 transition-colors">Refund policy</Link>
             <Link to="/login" className="hover:text-zinc-900 transition-colors">Sign in</Link>
             <Link to="/login?mode=register" className="text-zinc-900 font-medium hover:underline">Register</Link>
           </div>

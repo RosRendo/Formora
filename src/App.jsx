@@ -30,6 +30,9 @@ import DecisionLog from "@/pages/DecisionLog";
 import ProjectSettings from "@/pages/ProjectSettings";
 import LaterPhase from "@/pages/LaterPhase";
 import Billing from "@/pages/Billing";
+import Terms from "@/pages/Terms";
+import Privacy from "@/pages/Privacy";
+import Refund from "@/pages/Refund";
 
 function Protected({ children }) {
   const { user } = useAuth();
@@ -53,6 +56,10 @@ function AppRouter() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/refund" element={<Refund />} />
+      <Route path="/refund-policy" element={<Navigate to="/refund" replace />} />
       <Route path="/register" element={<Navigate to="/login?mode=register" replace />} />
       <Route element={<Protected><AppShell /></Protected>}>
         <Route path="/dashboard" element={<Dashboard />} />
